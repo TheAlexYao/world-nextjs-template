@@ -281,17 +281,19 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-white overscroll-none">
-      {/* Header - Add min-height to prevent collapse */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0 z-10 min-h-[60px]">
+    <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overscroll-none touch-manipulation">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 select-none">
         {/* Left side: Title and user count */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold text-gray-900">Chat</h1>
-          <div className="text-sm text-gray-500">{connectedUsers} online</div>
+        <div className="flex items-center gap-2 touch-manipulation">
+          <h1 className="text-lg font-bold bg-gradient-to-r from-[#00A7B7] to-blue-600 text-transparent bg-clip-text select-none">Chat</h1>
+          <div className="px-2 py-0.5 text-sm bg-[#00A7B7]/10 text-[#00A7B7] rounded-full font-medium select-none">
+            {connectedUsers} online
+          </div>
         </div>
 
-        {/* Right side: Username and Sign out - Improve mobile layout */}
-        <div className="flex items-center gap-4 min-w-0">
+        {/* Right side: Username and Sign out */}
+        <div className="flex items-center gap-2 min-w-0 touch-manipulation">
           {isEditingName ? (
             <form onSubmit={(e) => {
               e.preventDefault()
@@ -301,21 +303,25 @@ export default function Chat() {
                 setUsername(newUsername.trim())
                 setIsEditingName(false)
               }
-            }} className="flex items-center gap-2 max-w-full">
+            }} className="flex items-center gap-1.5 max-w-full">
               <input
                 type="text"
                 defaultValue={username}
-                placeholder="Enter display name"
-                className="input-primary text-sm w-[140px] max-w-[50vw]"
+                placeholder="Name"
+                className="input-primary text-sm w-[120px] max-w-[40vw] bg-gray-50 dark:bg-gray-800"
                 autoFocus
                 minLength={2}
+                autoComplete="off"
+                autoCorrect="off"
                 style={{
-                  maxHeight: '35px'
+                  maxHeight: '32px',
+                  WebkitTapHighlightColor: 'transparent'
                 }}
               />
               <button 
                 type="submit"
-                className="text-xs btn-secondary"
+                className="px-2.5 py-1 text-xs bg-[#00A7B7] text-white rounded-full hover:bg-[#008999] transition-colors select-none"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 Save
               </button>
@@ -323,49 +329,44 @@ export default function Chat() {
           ) : (
             <button 
               onClick={() => setIsEditingName(true)}
-              className="flex items-center gap-1 text-gray-500 hover:text-[#00A7B7] transition-colors"
+              className="flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-[#00A7B7] dark:hover:text-[#00A7B7] transition-colors px-2.5 py-1.5 rounded-full hover:bg-[#00A7B7]/10 select-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <span>{username}</span>
+              <span className="truncate max-w-[100px]">{username}</span>
               <span className="text-xs">✎</span>
             </button>
           )}
-          <button
-            onClick={() => signOut()}
-            className="text-sm text-gray-500 hover:text-gray-900"
-          >
-            Sign out
-          </button>
-          <button
-            onClick={() => {
-              localStorage.clear()
-              sessionStorage.clear()
-              window.location.reload()
-            }}
-            className="text-sm text-red-500 hover:text-red-700"
-          >
-            Clear Data
-          </button>
+          <div className="flex items-center">
+            <button
+              onClick={() => signOut()}
+              className="px-2.5 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 select-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 overscroll-none -webkit-overflow-scrolling-touch">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 overscroll-none -webkit-overflow-scrolling-touch bg-transparent">
         {messages.map((msg, i) => {
           const isCurrentUser = msg.userId === session.user.id
           return (
             <div
               key={msg.timestamp + i}
-              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} animate-fade-in select-none`}
             >
               <div
-                className={`rounded-2xl px-4 py-2 max-w-[80%] ${
-                  msg.receipt ? 'bg-white' : isCurrentUser
-                    ? 'bg-[#00A7B7] text-white'
-                    : 'bg-gray-100 text-gray-900'
+                className={`rounded-2xl px-3.5 py-2 max-w-[90%] shadow-sm ${
+                  msg.receipt ? 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700' : 
+                  isCurrentUser
+                    ? 'bg-gradient-to-r from-[#00A7B7] to-[#008999] text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
                 }`}
               >
                 {!isCurrentUser && !msg.receipt && (
-                  <p className="text-xs font-medium mb-1 flex items-center gap-1">
+                  <p className="text-xs font-medium mb-1 flex items-center gap-1.5">
                     {getDisplayName(msg)}
                     {msg.verification_level === 'orb' ? (
                       <span title="Orb Verified" className="text-[#00A7B7]">⦿</span>
@@ -415,21 +416,21 @@ export default function Chat() {
                     }}
                   />
                 ) : (
-                  <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>
+                  <p className="break-words text-[15px] leading-[1.4]">{msg.message}</p>
                 )}
-                <span className="text-xs opacity-75 mt-1 block">
-                  {new Date(msg.timestamp).toLocaleTimeString()}
+                <span className="text-xs opacity-75 mt-1.5 block">
+                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
             </div>
           )
         })}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4" />
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 bg-white sticky bottom-0 pb-safe">
-        <form onSubmit={sendMessage} className="flex gap-2 items-center">
+      <div className="px-3 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky bottom-0 pb-safe border-t border-gray-100 dark:border-gray-800">
+        <form onSubmit={sendMessage} className="flex gap-2 items-center touch-manipulation">
           <ScanButton 
             onClick={() => setIsScanModalOpen(true)}
           />
@@ -438,12 +439,19 @@ export default function Chat() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            className="input-primary flex-1 text-[15px]"
+            className="input-primary flex-1 text-[15px] bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 placeholder-gray-400 dark:placeholder-gray-500"
+            autoComplete="off"
+            autoCorrect="off"
+            style={{
+              minHeight: '40px',
+              WebkitTapHighlightColor: 'transparent'
+            }}
           />
           <button
             type="submit"
             disabled={!newMessage.trim()}
-            className="btn-primary text-[15px]"
+            className="btn-primary text-[15px] bg-gradient-to-r from-[#00A7B7] to-[#008999] hover:from-[#008999] hover:to-[#007A8A] disabled:from-gray-400 disabled:to-gray-400 min-w-[70px] h-[40px] transition-all duration-200 ease-out transform active:scale-[0.97] select-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             Send
           </button>
