@@ -48,11 +48,7 @@ export default function Chat() {
       await fetch('/api/pusher/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: newMessage,
-          userId: session.user.id,
-          verification_level: session.user.verification_level,
-        }),
+        body: JSON.stringify({ message: newMessage }),
       })
       setNewMessage('')
     } catch (error) {
@@ -71,9 +67,6 @@ export default function Chat() {
     )
   }
 
-  // Safe to use session.user after the check above
-  const userId = session.user.id
-
   return (
     <div className="flex flex-col h-[100dvh] bg-white overscroll-none">
       {/* Header */}
@@ -86,32 +79,33 @@ export default function Chat() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 overscroll-none">
-        {messages.map((msg, i) => (
-          <div
-            key={msg.timestamp + i}
-            className={`flex ${
-              msg.userId === userId ? 'justify-end' : 'justify-start'
-            }`}
-          >
+        {messages.map((msg, i) => {
+          const isCurrentUser = msg.userId === session.user.id
+          return (
             <div
-              className={`rounded-2xl px-4 py-2 max-w-[80%] ${
-                msg.userId === userId
-                  ? 'bg-[#00A7B7] text-white'
-                  : 'bg-gray-100 text-gray-900'
-              }`}
+              key={msg.timestamp + i}
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
-              {msg.userId !== userId && (
-                <p className="text-xs font-medium mb-1">
-                  World ID: {msg.userId.slice(-4)} ({msg.verification_level})
-                </p>
-              )}
-              <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>
-              <span className="text-xs opacity-75 mt-1 block">
-                {new Date(msg.timestamp).toLocaleTimeString()}
-              </span>
+              <div
+                className={`rounded-2xl px-4 py-2 max-w-[80%] ${
+                  isCurrentUser
+                    ? 'bg-[#00A7B7] text-white'
+                    : 'bg-gray-100 text-gray-900'
+                }`}
+              >
+                {!isCurrentUser && (
+                  <p className="text-xs font-medium mb-1">
+                    World ID: {msg.userId.slice(-4)} ({msg.verification_level})
+                  </p>
+                )}
+                <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>
+                <span className="text-xs opacity-75 mt-1 block">
+                  {new Date(msg.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
         <div ref={messagesEndRef} />
       </div>
 
