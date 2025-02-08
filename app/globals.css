@@ -3,27 +3,55 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Brand Colors */
+  --color-primary: #00A7B7;
+  --color-primary-dark: #008999;
+  --color-text: #111827;
+  --color-text-secondary: #6B7280;
+  --color-border: #E5E7EB;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* Global input styles */
+input {
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  caret-color: var(--color-primary);
+  touch-action: manipulation;
 }
 
+/* Global button styles */
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Global body styles */
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  @apply bg-white;
+  color: var(--color-text);
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+@layer components {
+  /* Primary Button */
+  .btn-primary {
+    @apply bg-[var(--color-primary)] text-white px-6 py-2 rounded-full font-medium 
+           hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed
+           active:scale-95 transition-transform;
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    @apply text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors;
+  }
+
+  /* Input Field */
+  .input-primary {
+    @apply border border-[var(--color-border)] rounded-full px-4 py-2
+           focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]
+           text-[var(--color-text)] bg-white placeholder:text-[var(--color-text-secondary)];
+  }
 }
 
 @layer utilities {
