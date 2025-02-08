@@ -42,28 +42,28 @@ export default function ReceiptCard({
   }, [showPaymentModal, onModalStateChange])
   
   // Get current user's status
-  const currentParticipant = currentUserId ? participants.find(p => {
-    console.log('Checking participant:', {
-      participantId: p.userId,
-      currentUserId,
-      match: p.userId === currentUserId
-    })
-    return p.userId === currentUserId
-  }) : null
-
-  console.log('Participant check:', {
-    participants,
+  const currentParticipant = currentUserId ? participants.find(p => p.userId === currentUserId) : null
+  
+  console.log('Receipt state:', {
     currentUserId,
+    participants,
     currentParticipant,
-    participantIds: participants.map(p => p.userId)
+    hasJoined: currentParticipant !== null,
+    hasPaid: currentParticipant?.hasPaid
   })
   
   const isInitiator = currentUserId === initiatorId
   
-  // Everyone needs to join and pay, including initiator
-  const hasJoined = currentParticipant?.hasPaid !== undefined
+  // Everyone needs to join first, then pay
+  const hasJoined = currentParticipant !== null // Changed: check if user exists in participants
   const hasPaid = currentParticipant?.hasPaid
 
+  // Show button if:
+  // 1. User hasn't joined yet
+  // 2. User has joined but hasn't paid
+  // 3. Hide if user has paid
+  const showButton = isMessage && (!hasJoined || (hasJoined && !hasPaid))
+  
   return (
     <>
       <div className={`bg-white rounded-2xl p-4 shadow-lg w-full ${isMessage ? 'max-w-full' : 'max-w-sm mx-auto'}`}>
@@ -149,17 +149,16 @@ export default function ReceiptCard({
         </div>
 
         {/* Join/Pay Buttons (for everyone including initiator) */}
-        {isMessage && (
+        {showButton && (
           <button
             onClick={() => {
-              console.log('Join/Pay button clicked:', {
+              console.log('Button clicked:', {
                 hasJoined,
                 hasPaid,
                 currentParticipant,
-                isInitiator,
-                currentUserId,
-                initiatorId
+                action: !hasJoined ? 'joining' : 'paying'
               })
+              
               if (!hasJoined) {
                 onJoin?.()
               } else if (!hasPaid) {
@@ -169,7 +168,7 @@ export default function ReceiptCard({
             disabled={hasPaid}
             className="btn-primary w-full mt-4"
           >
-            {!hasJoined ? 'Join Split' : !hasPaid ? 'Pay 0.1 WLD' : 'Paid ✓'}
+            {hasPaid ? 'Paid ✓' : !hasJoined ? 'Join Split' : 'Pay 0.1 WLD'}
           </button>
         )}
 
@@ -189,10 +188,11 @@ export default function ReceiptCard({
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onSuccess={() => {
+          console.log('Payment successful, triggering onPay callback')
           onPay?.()
           setShowPaymentModal(false)
         }}
-        amount={receipt.total / participants.length}
+        amount={splitAmount || 0}
         currency={receipt.currency}
       />
     </>
