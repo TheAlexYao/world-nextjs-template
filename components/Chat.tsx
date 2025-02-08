@@ -464,19 +464,15 @@ export default function Chat() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                  message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💡 No other users to split with`,
+                  message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}`,
                   username,
                   receipt: {
                     data: MOCK_RECEIPT,
-                    participants: [{
-                      userId: session.user.id,
-                      username,
-                      verification: session.user.verification_level as 'orb' | 'phone',
-                      hasPaid: false
-                    }]
+                    participants: [] // Empty participants for single user
                   }
                 }),
               })
+              setIsScanModalOpen(false) // Close modal after sending
               return
             }
 
@@ -493,6 +489,7 @@ export default function Chat() {
                 }
               }),
             })
+            setIsScanModalOpen(false) // Close modal after sending
           } catch (error) {
             console.error('Error sending split command:', error)
           }
