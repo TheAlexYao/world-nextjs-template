@@ -19,7 +19,6 @@ export const authOptions: NextAuthOptions = {
         return {
           id: profile.sub,
           verification_level: profile["https://id.worldcoin.org/v1"].verification_level,
-          username: profile.sub.slice(-4), // Fallback to last 4 chars of ID for now
         };
       },
     },
@@ -29,14 +28,12 @@ export const authOptions: NextAuthOptions = {
       session.user = {
         id: token.sub as string,
         verification_level: token.verification_level as string,
-        username: token.username as string,
       };
       return session;
     },
     async jwt({ token, user, account, profile }) {
       if (user) {
         token.verification_level = user.verification_level;
-        token.username = user.username;
       }
       return token;
     },

@@ -15,8 +15,16 @@ type Message = {
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
+  const [username, setUsername] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
+
+  // Get username from MiniKit when component mounts
+  useEffect(() => {
+    if (window.MiniKit?.user?.username) {
+      setUsername(window.MiniKit.user.username)
+    }
+  }, [])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -43,13 +51,16 @@ export default function Chat() {
 
   const sendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!newMessage.trim() || !session) return
+    if (!newMessage.trim() || !session || !username) return
 
     try {
       await fetch('/api/pusher/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: newMessage }),
+        body: JSON.stringify({ 
+          message: newMessage,
+          username: username // Send username from MiniKit
+        }),
       })
       setNewMessage('')
     } catch (error) {
