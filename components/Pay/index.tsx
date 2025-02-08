@@ -48,46 +48,47 @@ const sendPayment = async () => {
   }
 };
 
-const handlePay = async () => {
-  if (!MiniKit.isInstalled()) {
-    console.error("MiniKit is not installed");
-    return;
-  }
-  try {
-    const sendPaymentResponse = await sendPayment();
-    if (!sendPaymentResponse) {
-      console.error('Payment failed or was cancelled');
+export const PayBlock = ({ onSuccess }: { onSuccess?: () => void }) => {
+  const handlePayClick = async () => {
+    if (!MiniKit.isInstalled()) {
+      console.error("MiniKit is not installed");
       return;
     }
-
-    const response = sendPaymentResponse.finalPayload;
-    if (!response) {
-      console.error('No final payload from payment');
-      return;
-    }
-
-    if (response.status === "success") {
-      const res = await fetch(`/api/confirm-payment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload: response }),
-      });
-      const payment = await res.json();
-      if (payment.success) {
-        console.log("Payment successful!");
-      } else {
-        console.error("Payment confirmation failed");
+    try {
+      const sendPaymentResponse = await sendPayment();
+      if (!sendPaymentResponse) {
+        console.error('Payment failed or was cancelled');
+        return;
       }
-    }
-  } catch (err) {
-    console.error('Payment handling error:', err);
-  }
-};
 
-export const PayBlock = () => {
+      const response = sendPaymentResponse.finalPayload;
+      if (!response) {
+        console.error('No final payload from payment');
+        return;
+      }
+
+      if (response.status === "success") {
+        const res = await fetch(`/api/confirm-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payload: response }),
+        });
+        const payment = await res.json();
+        if (payment.success) {
+          console.log("Payment successful!");
+          onSuccess?.();
+        } else {
+          console.error("Payment confirmation failed");
+        }
+      }
+    } catch (err) {
+      console.error('Payment handling error:', err);
+    }
+  };
+
   return (
     <button 
-      onClick={handlePay}
+      onClick={handlePayClick}
       className="w-full px-6 py-3 bg-[#00A7B7] text-white rounded-full font-medium 
                 active:bg-[#008999] active:scale-[0.98] transition-transform"
     >

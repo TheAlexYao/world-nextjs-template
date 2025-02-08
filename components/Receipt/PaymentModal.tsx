@@ -76,7 +76,7 @@ export default function PaymentModal({
                 </p>
               </div>
 
-              <PayBlock />
+              <PayBlock onSuccess={onSuccess} />
             </div>
           </motion.div>
         </motion.div>

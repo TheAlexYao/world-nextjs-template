@@ -429,7 +429,7 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="px-3 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky bottom-0 pb-safe border-t border-gray-100 dark:border-gray-800">
+      <div className="px-3 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky bottom-0 pb-safe border-t border-gray-100 dark:border-gray-800 z-50">
         <form onSubmit={sendMessage} className="flex gap-2 items-center touch-manipulation">
           <ScanButton 
             onClick={() => setIsScanModalOpen(true)}
