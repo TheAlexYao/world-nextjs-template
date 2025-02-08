@@ -26,11 +26,10 @@ export default function Chat() {
   useEffect(() => {
     if (session?.user?.id) {
       const savedName = localStorage.getItem(`username_${session.user.id}`)
-      const defaultName = session.user.id.slice(-4)
-      const nameToUse = savedName || defaultName
-      
-      setUsername(nameToUse)
-      setUsernames(prev => ({...prev, [session.user.id]: nameToUse}))
+      if (savedName) {
+        setUsername(savedName)
+        setUsernames(prev => ({...prev, [session.user.id]: savedName}))
+      }
     }
   }, [session])
 
