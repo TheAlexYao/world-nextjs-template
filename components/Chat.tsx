@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { pusherClient, CHANNELS, EVENTS } from '@/lib/pusher'
 
 type Message = {
@@ -73,8 +73,16 @@ export default function Chat() {
       {/* Header */}
       <div className="flex items-center px-4 py-3 border-b bg-white sticky top-0">
         <h1 className="text-lg font-semibold text-gray-900">Group Chat</h1>
-        <div className="ml-auto text-sm text-gray-500">
-          {messages.length} messages
+        <div className="ml-auto flex items-center gap-4">
+          <div className="text-sm text-gray-500">
+            {messages.length} messages
+          </div>
+          <button
+            onClick={() => signOut()}
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            Sign Out
+          </button>
         </div>
       </div>
 

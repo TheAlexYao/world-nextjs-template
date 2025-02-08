@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { pusher, CHANNELS, EVENTS } from '@/lib/pusher'
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession()
-    if (!session) {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { message, username } = body
+    const { message } = body
 
     // Trigger the message event on the chat channel
     await pusher.trigger(CHANNELS.CHAT, EVENTS.MESSAGE, {

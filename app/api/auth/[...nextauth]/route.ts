@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   providers: [
@@ -19,12 +19,27 @@ const authOptions: NextAuthOptions = {
         return {
           id: profile.sub,
           verification_level: profile["https://id.worldcoin.org/v1"].verification_level,
-          username: profile["https://id.worldcoin.org/v1"].username || profile.sub.slice(-4),
+          username: profile.sub.slice(-4), // Fallback to last 4 chars of ID for now
         };
       },
     },
   ],
   callbacks: {
+    async session({ session, token, user }) {
+      session.user = {
+        id: token.sub as string,
+        verification_level: token.verification_level as string,
+        username: token.username as string,
+      };
+      return session;
+    },
+    async jwt({ token, user, account, profile }) {
+      if (user) {
+        token.verification_level = user.verification_level;
+        token.username = user.username;
+      }
+      return token;
+    },
     async signIn({ user }) {
       return true;
     },
