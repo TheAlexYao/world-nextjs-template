@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node --project tsconfig.server.json lib/socket.ts",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -18,9 +18,7 @@
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0",
     "react": "^18",
-    "react-dom": "^18",
-    "socket.io": "^4.7.4",
-    "socket.io-client": "^4.7.4"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
