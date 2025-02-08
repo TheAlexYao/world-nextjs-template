@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import ReceiptCard from './ReceiptCard'
 import { type ReceiptData } from '@/types/receipt'
+import { useSession } from 'next-auth/react'
 
 // Mock data (simplified from duck receipt)
 export const MOCK_RECEIPT: ReceiptData = {
@@ -44,6 +45,7 @@ export default function ScanModal({
 }: Props) {
   const [scanning, setScanning] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
+  const { data: session } = useSession()
   
   // Reset state when modal closes
   useEffect(() => {
@@ -63,15 +65,52 @@ export default function ScanModal({
         setScanning(false)
         setShowReceipt(true)
         
-        // Post message first
-        await onScanComplete()
-        
-        // Don't auto-close modal, let user see receipt details
+        try {
+          const initiator = {
+            userId: session?.user?.id || '',
+            username: localStorage.getItem(`username_${session?.user?.id}`) || 'Unknown',
+            verification: session?.user?.verification_level || 'phone',
+            hasPaid: false
+          }
+
+          // If only 1 user (myself), show receipt with just initiator
+          if (connectedUsers <= 1) {
+            await fetch('/api/pusher/message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}`,
+                username: initiator.username,
+                receipt: {
+                  data: MOCK_RECEIPT,
+                  participants: [initiator] // Include initiator
+                }
+              }),
+            })
+          } else {
+            // Multiple users - include initiator and others
+            await fetch('/api/pusher/message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${connectedUsers} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / connectedUsers).toFixed(2)} each`,
+                username: initiator.username,
+                receipt: {
+                  data: MOCK_RECEIPT,
+                  participants: [initiator, ...participants] // Include initiator first
+                }
+              }),
+            })
+          }
+          onClose()
+        } catch (error) {
+          console.error('Error sending split command:', error)
+        }
       }, 2000)
       
       return () => clearTimeout(timer)
     }
-  }, [isOpen, onScanComplete])
+  }, [isOpen, onScanComplete, session, connectedUsers, participants])
 
   return (
     <AnimatePresence>
