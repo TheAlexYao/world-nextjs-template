@@ -102,6 +102,22 @@ export default function Chat() {
     }
   }, [session])
 
+  useEffect(() => {
+    // iOS keyboard handling
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Scroll to bottom when keyboard appears/disappears
+        window.scrollTo(0, 0)
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
   const sendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!newMessage.trim() || !session || !username) return
@@ -175,16 +191,16 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white overscroll-none">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0 z-10">
+      {/* Header - Add min-height to prevent collapse */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0 z-10 min-h-[60px]">
         {/* Left side: Title and user count */}
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold text-gray-900">Chat</h1>
           <div className="text-sm text-gray-500">{connectedUsers} online</div>
         </div>
 
-        {/* Right side: Username and Sign out */}
-        <div className="flex items-center gap-4">
+        {/* Right side: Username and Sign out - Improve mobile layout */}
+        <div className="flex items-center gap-4 min-w-0">
           {isEditingName ? (
             <form onSubmit={(e) => {
               e.preventDefault()
@@ -193,7 +209,7 @@ export default function Chat() {
                 setUsername(trimmedName)
                 setIsEditingName(false)
               }
-            }} className="flex items-center gap-2">
+            }} className="flex items-center gap-2 max-w-full">
               <input
                 type="text"
                 value={username}
@@ -206,8 +222,13 @@ export default function Chat() {
                   }
                 }}
                 placeholder="Enter display name"
-                className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
+                className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7] max-w-[50vw]"
                 autoFocus
+                // Add iOS specific fixes
+                style={{
+                  WebkitAppearance: 'none',
+                  maxHeight: '35px'
+                }}
               />
               <button 
                 type="submit"
