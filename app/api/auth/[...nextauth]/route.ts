@@ -17,9 +17,7 @@ const authOptions: NextAuthOptions = {
       profile(profile) {
         return {
           id: profile.sub,
-          name: profile.sub,
-          verificationLevel:
-            profile["https://id.worldcoin.org/v1"].verification_level,
+          verification_level: profile["https://id.worldcoin.org/v1"].verification_level,
         };
       },
     },
