@@ -18,10 +18,6 @@ export const pusherClient = new PusherClient(
     enabledTransports: ['ws', 'wss'],
     authEndpoint: '/api/pusher/auth',
     auth: {
-      params: {
-        username: typeof window !== 'undefined' ? 
-          localStorage.getItem(`username_${window.sessionStorage.getItem('user_id')}`) : undefined
-      },
       headers: {
         'Content-Type': 'application/json',
       }

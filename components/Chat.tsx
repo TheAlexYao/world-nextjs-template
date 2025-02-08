@@ -34,16 +34,18 @@ export default function Chat() {
   }, [session])
 
   // Save username to localStorage when it changes
-  useEffect(() => {
-    if (session?.user?.id && username) {
-      localStorage.setItem(`username_${session.user.id}`, username)
-      setUsernames(prev => ({...prev, [session.user.id]: username}))
+  const updateUsername = (newUsername: string) => {
+    if (session?.user?.id && newUsername.trim()) {
+      const trimmedName = newUsername.trim()
+      localStorage.setItem(`username_${session.user.id}`, trimmedName)
+      setUsername(trimmedName)
+      setUsernames(prev => ({...prev, [session.user.id]: trimmedName}))
       
       // Force Pusher to reconnect with new username
       pusherClient.disconnect()
       pusherClient.connect()
     }
-  }, [username, session?.user?.id])
+  }
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -188,16 +190,15 @@ export default function Chat() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Display Name</h2>
           <form onSubmit={(e) => {
             e.preventDefault()
-            const trimmedName = username.trim()
-            if (trimmedName) {
-              localStorage.setItem(`username_${session.user.id}`, trimmedName)
-              setUsername(trimmedName)
-              setUsernames(prev => ({...prev, [session.user.id]: trimmedName}))
+            const input = e.currentTarget.querySelector('input')
+            const newUsername = input?.value || ''
+            if (newUsername.trim()) {
+              updateUsername(newUsername)
             }
           }} className="flex flex-col items-center gap-4">
             <input
               type="text"
-              value={username}
+              defaultValue=""
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter display name"
               className="border rounded-lg px-4 py-2 w-64 focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
@@ -231,20 +232,21 @@ export default function Chat() {
           {isEditingName ? (
             <form onSubmit={(e) => {
               e.preventDefault()
-              const trimmedName = username.trim()
-              if (trimmedName) {
-                setUsername(trimmedName)
+              const input = e.currentTarget.querySelector('input')
+              const newUsername = input?.value || ''
+              if (newUsername.trim()) {
+                updateUsername(newUsername)
                 setIsEditingName(false)
               }
             }} className="flex items-center gap-2 max-w-full">
               <input
                 type="text"
-                value={username}
+                defaultValue={username}
                 onChange={(e) => setUsername(e.target.value)}
                 onBlur={() => {
                   const trimmedName = username.trim()
                   if (trimmedName) {
-                    setUsername(trimmedName)
+                    updateUsername(trimmedName)
                     setIsEditingName(false)
                   }
                 }}
