@@ -155,6 +155,18 @@ export default function Chat() {
           // Check if user is already in participants
           const existingParticipant = msg.receipt.participants.find(p => p.userId === data.userId)
           
+          // Get member info from presence channel
+          const presenceChannel = presenceChannelRef.current
+          const memberInfo = presenceChannel?.members?.members[data.userId]
+          const memberUsername = usernames[data.userId] || (memberInfo?.info?.username) || 'Unknown'
+          
+          console.log('Member info for join:', {
+            userId: data.userId,
+            memberInfo,
+            memberUsername,
+            presenceMembers: presenceChannel?.members?.members
+          })
+
           // Always update the participant list
           const updatedParticipants = existingParticipant
             ? msg.receipt.participants.map(p => 
@@ -166,11 +178,8 @@ export default function Chat() {
                 ...msg.receipt.participants,
                 {
                   userId: data.userId,
-                  // Use current user's username if it's them joining
-                  username: data.userId === session?.user?.id 
-                    ? username 
-                    : (usernames[data.userId] || 'Unknown'),
-                  verification: (session?.user?.verification_level || 'phone') as 'orb' | 'phone',
+                  username: memberUsername,
+                  verification: (memberInfo?.info?.verification_level || 'phone') as 'orb' | 'phone',
                   hasPaid: false
                 }
               ]
