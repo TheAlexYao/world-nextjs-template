@@ -39,6 +39,10 @@ export default function Chat() {
     if (session?.user?.id && username) {
       localStorage.setItem(`username_${session.user.id}`, username)
       setUsernames(prev => ({...prev, [session.user.id]: username}))
+      
+      // Force Pusher to reconnect with new username
+      pusherClient.disconnect()
+      pusherClient.connect()
     }
   }, [username, session?.user?.id])
 
@@ -172,7 +176,7 @@ export default function Chat() {
   return (
     <div className="flex flex-col h-[100dvh] bg-white overscroll-none">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0 z-10">
         {/* Left side: Title and user count */}
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold text-gray-900">Chat</h1>
@@ -184,13 +188,23 @@ export default function Chat() {
           {isEditingName ? (
             <form onSubmit={(e) => {
               e.preventDefault()
-              setIsEditingName(false)
+              const trimmedName = username.trim()
+              if (trimmedName) {
+                setUsername(trimmedName)
+                setIsEditingName(false)
+              }
             }} className="flex items-center gap-2">
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                onBlur={() => setIsEditingName(false)}
+                onBlur={() => {
+                  const trimmedName = username.trim()
+                  if (trimmedName) {
+                    setUsername(trimmedName)
+                    setIsEditingName(false)
+                  }
+                }}
                 placeholder="Enter display name"
                 className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
                 autoFocus
@@ -221,7 +235,7 @@ export default function Chat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 overscroll-none">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 overscroll-none -webkit-overflow-scrolling-touch">
         {messages.map((msg, i) => {
           const isCurrentUser = msg.userId === session.user.id
           return (
@@ -258,8 +272,8 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 bg-white sticky bottom-0">
-        <form onSubmit={sendMessage} className="flex gap-2">
+      <div className="px-4 py-3 bg-white sticky bottom-0 pb-safe">
+        <form onSubmit={sendMessage} className="flex gap-2 items-center">
           <button
             type="button"
             onClick={() => {
