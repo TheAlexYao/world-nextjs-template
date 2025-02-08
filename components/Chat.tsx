@@ -467,19 +467,20 @@ export default function Chat() {
         username={username}
         onScanComplete={async () => {
           try {
+            const presenceMembers = presenceChannelRef.current?.members
             console.log('Current members:', {
-              presenceMembers: presenceChannelRef.current?.members,
+              presenceMembers,
               members,
               connectedUsers
             })
 
-            // Get all current members and mark initiator as paid
-            const allParticipants = Array.from((presenceChannelRef.current?.members.members || new Map()) as Map<string, PresenceMember>)
-              .map(([id, member]) => ({
+            // Get all members from the presence channel's members object
+            const allParticipants = Object.entries(presenceMembers?.members || {})
+              .map(([id, member]: [string, any]) => ({
                 userId: id,
                 username: id === session?.user?.id ? username : (usernames[id] || 'Unknown'),
                 verification: member.info.verification_level,
-                hasPaid: id === session?.user?.id // Only initiator is paid
+                hasPaid: false // No one starts as paid
               }))
 
             console.log('Participants being sent:', {
