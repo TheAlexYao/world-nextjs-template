@@ -204,7 +204,7 @@ export default function Chat() {
             <input
               type="text"
               placeholder="Enter display name"
-              className="border rounded-lg px-4 py-2 w-64 focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
+              className="border rounded-lg px-4 py-2 w-64 focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7] text-gray-900 bg-white placeholder:text-gray-500"
               autoFocus
               minLength={2}
             />
@@ -246,7 +246,7 @@ export default function Chat() {
                 type="text"
                 defaultValue={username}
                 placeholder="Enter display name"
-                className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7] max-w-[50vw]"
+                className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7] max-w-[50vw] text-gray-900 bg-white placeholder:text-gray-500"
                 autoFocus
                 minLength={2}
                 // Add iOS specific fixes
