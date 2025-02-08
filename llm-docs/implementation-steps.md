@@ -72,39 +72,61 @@ When using ngrok for development, remember to:
    - [x] Updated .env.example with new variables
    - [x] Added client-side Pusher variables
 
-5. **Payment Infrastructure**
-   - [x] Implemented Pay component for payment UI
-   - [x] Created /api/initiate-payment endpoint
-   - [x] Created /api/confirm-payment endpoint
-   - [x] Integrated payment flow with World ID verification
-   - [x] Tested payment endpoints
+5. **Chat Implementation**
+   - [x] Basic chat UI with messages
+   - [x] Real-time message delivery
+   - [x] Message persistence in state
+   - [x] Auto-scroll to latest messages
+   - [x] iOS viewport and keyboard fixes
+   - [x] Mobile-responsive design
+
+6. **Username System**
+   - [x] Required username setup screen
+   - [x] Username persistence in localStorage
+   - [x] Edit name functionality
+   - [x] Real-time username updates via presence channel
+   - [x] Username sync across multiple devices/tabs
+
+7. **Presence Channel**
+   - [x] Implemented presence channel auth
+   - [x] Real-time user count updates
+   - [x] User join/leave events
+   - [x] Username propagation in presence data
+   - [x] Reconnection handling for name changes
 
 ## In Progress 🚧
-6. **Pusher Integration**
-   - [ ] Implement server-side trigger endpoint
-   - [ ] Build client-side chat component
-   - [ ] Test real-time messaging
-   - [ ] Implement subscription count handling for split payments
-
-## Next Steps ⏳
-7. **Deep Linking & Webview**
 8. **Receipt Scan Flow**
-9. **Travel Fund Module**
-10. **Testing & Deployment**
+   - [ ] Camera button UI
+   - [ ] Receipt scanning animation
+   - [ ] Static receipt display
+   - [ ] Split calculation based on user count
+
+9. **Payment Flow**
+   - [ ] Implement payment UI
+   - [ ] Add confirmation buttons
+   - [ ] Handle .1 WLD transactions
+   - [ ] Payment status updates
+
+10. **Travel Fund Module**
+    - [ ] AI prompt after payment
+    - [ ] Fund progress tracking
+    - [ ] Success animations
 
 ## Technical Debt 🔧
-- Need to implement proper error handling for Pusher events
-- Consider adding retry logic for failed message delivery
+- Add retry logic for failed message delivery
 - Add environment variable validation
 - Update NEXTAUTH_URL in production env when Vercel URL is available
 - Consider enabling authorized connections if stricter security is needed
 - Add error handling for subscription count changes
+- Add loading states for better UX
+- Add error boundaries for component crashes
+- Add proper TypeScript types for Pusher events
 
 ## Next Up 📋
-1. Create server-side Pusher trigger endpoint with subscription counting
-2. Implement chat component with Pusher integration
-3. Test real-time messaging with multiple clients
-4. Implement subscription count listener for dynamic split updates
+1. Implement receipt scan flow with camera button
+2. Add receipt scanning animation
+3. Display static receipt with split calculation
+4. Implement payment confirmation UI
 
 * * *
 
