@@ -16,19 +16,14 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [username, setUsername] = useState<string>('')
+  const [isEditingName, setIsEditingName] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
 
-  // Get username from MiniKit when component mounts
+  // Set default username from ID
   useEffect(() => {
-    console.log('MiniKit:', window.MiniKit)
-    if (window.MiniKit?.user?.username) {
-      console.log('Setting username:', window.MiniKit.user.username)
-      setUsername(window.MiniKit.user.username)
-    } else {
-      console.log('No MiniKit username found')
-      // Fallback to last 4 chars of ID if no username
-      setUsername(session?.user?.id?.slice(-4) || 'Anonymous')
+    if (session?.user?.id) {
+      setUsername(session.user.id.slice(-4))
     }
   }, [session])
 
@@ -65,7 +60,7 @@ export default function Chat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: newMessage,
-          username: username // Send username from MiniKit
+          username
         }),
       })
       setNewMessage('')
@@ -89,7 +84,27 @@ export default function Chat() {
     <div className="flex flex-col h-[100dvh] bg-white overscroll-none">
       {/* Header */}
       <div className="flex items-center px-4 py-3 border-b bg-white sticky top-0">
-        <h1 className="text-lg font-semibold text-gray-900">Group Chat</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold text-gray-900">Group Chat</h1>
+          {isEditingName ? (
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              onBlur={() => setIsEditingName(false)}
+              onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
+              className="border rounded px-2 py-1 text-sm"
+              autoFocus
+            />
+          ) : (
+            <button 
+              onClick={() => setIsEditingName(true)}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              ({username})
+            </button>
+          )}
+        </div>
         <div className="ml-auto flex items-center gap-4">
           <div className="text-sm text-gray-500">
             {messages.length} messages
