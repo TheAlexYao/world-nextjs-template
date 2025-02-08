@@ -467,23 +467,22 @@ export default function Chat() {
         username={username}
         onScanComplete={async () => {
           try {
-            // If only 1 user (myself), just show receipt without split
-            if (connectedUsers <= 1) {
-              await fetch('/api/pusher/message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}`,
-                  username,
-                  receipt: {
-                    data: MOCK_RECEIPT,
-                    participants: [] // Empty participants for single user
-                  }
-                }),
-              })
-              setIsScanModalOpen(false) // Close modal after sending
-              return
+            const initiator = {
+              userId: session?.user?.id || '',
+              username: username,
+              verification: session?.user?.verification_level || 'phone',
+              hasPaid: true  // Initiator is marked as paid
             }
+
+            // Get all current members except initiator and mark them as not paid
+            const otherParticipants = members
+              .filter(member => member.userId !== initiator.userId)
+              .map(member => ({
+                userId: member.userId,
+                username: usernames[member.userId] || member.username,
+                verification: member.verification,
+                hasPaid: false
+              }))
 
             // Send receipt with all participants
             await fetch('/api/pusher/message', {
@@ -494,11 +493,11 @@ export default function Chat() {
                 username,
                 receipt: {
                   data: MOCK_RECEIPT,
-                  participants: members
+                  participants: [initiator, ...otherParticipants]  // Include everyone
                 }
               }),
             })
-            setIsScanModalOpen(false) // Close modal after sending
+            setIsScanModalOpen(false)
           } catch (error) {
             console.error('Error sending split command:', error)
           }
