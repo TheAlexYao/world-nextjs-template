@@ -58,9 +58,6 @@ export default function ReceiptCard({
           ))}
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-[var(--color-border)] my-4" />
-
         {/* Totals */}
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-[15px]">
@@ -74,59 +71,59 @@ export default function ReceiptCard({
         </div>
 
         {/* Split Details */}
-        {connectedUsers > 1 && (
-          <>
-            <div className="border-t border-[var(--color-border)] my-4" />
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-[var(--color-text-secondary)]">Split {connectedUsers} ways</span>
-                <span className="font-medium text-[var(--color-text)]">
-                  {receipt.currency} {splitAmount?.toFixed(2)} each
+        <div className="border-t border-[var(--color-border)] my-4" />
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-[var(--color-text-secondary)]">
+              {connectedUsers > 1 ? `Split ${connectedUsers} ways` : 'Participants'}
+            </span>
+            {connectedUsers > 1 && (
+              <span className="font-medium text-[var(--color-text)]">
+                {receipt.currency} {splitAmount?.toFixed(2)} each
+              </span>
+            )}
+          </div>
+
+          {/* Participants */}
+          <div className="space-y-2">
+            {participants.map((p, i) => (
+              <div key={i} className="flex items-center justify-between text-[15px]">
+                <div className="flex items-center gap-1">
+                  <span className="text-[var(--color-text)]">{p.username}</span>
+                  {p.verification === 'orb' ? (
+                    <span title="Orb Verified" className="text-[var(--color-primary)]">⦿</span>
+                  ) : (
+                    <span title="Phone Verified" className="text-[var(--color-primary)]">☎</span>
+                  )}
+                </div>
+                <span className={p.hasPaid ? 'text-green-500' : 'text-[var(--color-text-secondary)]'}>
+                  {p.hasPaid ? 'Paid ✓' : 'Pending...'}
                 </span>
               </div>
+            ))}
+          </div>
 
-              {/* Participants */}
-              <div className="space-y-2">
-                {participants.map((p, i) => (
-                  <div key={i} className="flex items-center justify-between text-[15px]">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[var(--color-text)]">{p.username}</span>
-                      {p.verification === 'orb' ? (
-                        <span title="Orb Verified" className="text-[var(--color-primary)]">⦿</span>
-                      ) : (
-                        <span title="Phone Verified" className="text-[var(--color-primary)]">☎</span>
-                      )}
-                    </div>
-                    <span className={p.hasPaid ? 'text-green-500' : 'text-[var(--color-text-secondary)]'}>
-                      {p.hasPaid ? 'Paid ✓' : 'Pending...'}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          {/* Fixed Payment Amount */}
+          <div className="text-center text-[var(--color-text-secondary)] text-sm">
+            Demo: Fixed payment of 0.1 WLD
+          </div>
+        </div>
 
-              {/* Join/Pay Buttons (only in message view for non-initiator) */}
-              {isMessage && !isInitiator && (
-                <button
-                  onClick={() => {
-                    if (!hasJoined) {
-                      onJoin?.()
-                    } else if (!hasPaid) {
-                      setShowPaymentModal(true)
-                    }
-                  }}
-                  disabled={hasPaid}
-                  className="btn-primary w-full"
-                >
-                  {!hasJoined ? 'Join Split' : !hasPaid ? 'Pay 0.1 WLD' : 'Paid ✓'}
-                </button>
-              )}
-
-              {/* Fixed Payment Amount */}
-              <div className="text-center text-[var(--color-text-secondary)] text-sm">
-                Demo: Fixed payment of 0.1 WLD
-              </div>
-            </div>
-          </>
+        {/* Join/Pay Buttons (only in message view for non-initiator) */}
+        {isMessage && !isInitiator && (
+          <button
+            onClick={() => {
+              if (!hasJoined) {
+                onJoin?.()
+              } else if (!hasPaid) {
+                setShowPaymentModal(true)
+              }
+            }}
+            disabled={hasPaid}
+            className="btn-primary w-full mt-4"
+          >
+            {!hasJoined ? 'Join Split' : !hasPaid ? 'Pay 0.1 WLD' : 'Paid ✓'}
+          </button>
         )}
 
         {/* Close Button (only in modal view) */}
