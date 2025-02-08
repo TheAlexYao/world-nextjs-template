@@ -106,7 +106,7 @@ export default function Chat() {
       pusherClient.unsubscribe(CHANNELS.CHAT)
       pusherClient.unsubscribe(CHANNELS.PRESENCE)
     }
-  }, [session])
+  }, [session, username])
 
   useEffect(() => {
     // iOS keyboard handling

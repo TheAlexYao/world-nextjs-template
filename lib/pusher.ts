@@ -30,8 +30,6 @@ export const pusherClient = new PusherClient(
       forceTLS: true,
       disableStats: true,
     }),
-    // Enable debug mode
-    debug: true
   }
 )
 
