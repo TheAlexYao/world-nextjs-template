@@ -281,7 +281,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overscroll-none touch-manipulation">
+    <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overscroll-none touch-manipulation" style={{ touchAction: 'none' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 select-none">
         {/* Left side: Title and user count */}
@@ -349,7 +349,7 @@ export default function Chat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 overscroll-none -webkit-overflow-scrolling-touch bg-transparent">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 overscroll-none -webkit-overflow-scrolling-touch bg-transparent" style={{ touchAction: 'pan-y' }}>
         {messages.map((msg, i) => {
           const isCurrentUser = msg.userId === session.user.id
           return (
