@@ -118,6 +118,14 @@ export default function ReceiptCard({
         {isMessage && !isInitiator && (
           <button
             onClick={() => {
+              console.log('Join/Pay button clicked:', {
+                hasJoined,
+                hasPaid,
+                currentParticipant,
+                isInitiator,
+                currentUserId,
+                initiatorId
+              })
               if (!hasJoined) {
                 onJoin?.()
               } else if (!hasPaid) {

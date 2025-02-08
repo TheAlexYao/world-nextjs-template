@@ -467,6 +467,12 @@ export default function Chat() {
         username={username}
         onScanComplete={async () => {
           try {
+            console.log('Current members:', {
+              presenceMembers: presenceChannelRef.current?.members,
+              members,
+              connectedUsers
+            })
+
             const initiator = {
               userId: session?.user?.id || '',
               username: username,
@@ -475,14 +481,19 @@ export default function Chat() {
             }
 
             // Get all current members except initiator and mark them as not paid
-            const otherParticipants = members
-              .filter(member => member.userId !== initiator.userId)
-              .map(member => ({
-                userId: member.userId,
-                username: usernames[member.userId] || member.username,
-                verification: member.verification,
+            const otherParticipants = Array.from((presenceChannelRef.current?.members.members || new Map()) as Map<string, PresenceMember>)
+              .map(([id, member]) => ({
+                userId: id,
+                username: usernames[id] || 'Unknown',
+                verification: member.info.verification_level,
                 hasPaid: false
               }))
+              .filter(member => member.userId !== initiator.userId)
+
+            console.log('Participants being sent:', {
+              initiator,
+              otherParticipants
+            })
 
             // Send receipt with all participants
             await fetch('/api/pusher/message', {
