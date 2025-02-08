@@ -21,18 +21,22 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
 
-  // Set default username from ID
+  // Load username from localStorage or set default
   useEffect(() => {
     if (session?.user?.id) {
+      const savedName = localStorage.getItem(`username_${session.user.id}`)
       const defaultName = session.user.id.slice(-4)
-      setUsername(defaultName)
-      setUsernames(prev => ({...prev, [session.user.id]: defaultName}))
+      const nameToUse = savedName || defaultName
+      
+      setUsername(nameToUse)
+      setUsernames(prev => ({...prev, [session.user.id]: nameToUse}))
     }
   }, [session])
 
-  // Update usernames map when username changes
+  // Save username to localStorage when it changes
   useEffect(() => {
     if (session?.user?.id && username) {
+      localStorage.setItem(`username_${session.user.id}`, username)
       setUsernames(prev => ({...prev, [session.user.id]: username}))
     }
   }, [username, session?.user?.id])
