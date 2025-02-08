@@ -24,7 +24,7 @@ export default function PaymentModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex flex-col"
+          className="fixed inset-0 z-[9999] flex flex-col"
         >
           {/* Backdrop */}
           <motion.div 

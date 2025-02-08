@@ -476,16 +476,20 @@ export default function Chat() {
 
             // Get all members from the presence channel's members object
             const allParticipants = Object.entries(presenceMembers?.members || {})
-              .map(([id, member]: [string, any]) => ({
-                userId: id,
-                username: id === session?.user?.id ? username : (usernames[id] || member.info.username || 'Unknown'),
-                verification: member.info.verification_level,
-                hasPaid: false
-              }))
+              .map(([id, member]: [string, any]) => {
+                console.log('Processing member:', { id, member })
+                return {
+                  userId: id,
+                  username: id === session?.user?.id ? username : (usernames[id] || member?.info?.username || 'Unknown'),
+                  verification: member?.info?.verification_level || 'phone',
+                  hasPaid: false
+                }
+              })
 
             console.log('Participants being sent:', {
               allParticipants,
-              connectedUsers
+              connectedUsers,
+              presenceMembers
             })
 
             // Send receipt with all participants

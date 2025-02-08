@@ -15,25 +15,35 @@ const sendPayment = async () => {
 
     const { id } = await res.json();
 
-    console.log(id);
+    console.log('Payment ID:', id);
 
     const payload: PayCommandInput = {
       reference: id,
-      to: "0x097d029bdd8bd34b02bf47c601e79da294a62706", // Your test wallet address
+      to: "0x097d029bdd8bd34b02bf47c601e79da294a62706",
       tokens: [
         {
           symbol: Tokens.WLD,
           token_amount: tokenToDecimals(0.1, Tokens.WLD).toString(),
         }
-      ], // Removed USDC, keeping only WLD
-      description: "Watch this is a test",
+      ],
+      description: "Split payment",
     };
-    if (MiniKit.isInstalled()) {
-      return await MiniKit.commandsAsync.pay(payload);
+
+    if (!MiniKit.isInstalled()) {
+      console.error("MiniKit is not installed");
+      return null;
     }
-    return null;
-  } catch (error: unknown) {
-    console.log("Error sending payment", error);
+
+    try {
+      const response = await MiniKit.commandsAsync.pay(payload);
+      console.log('Payment response:', response);
+      return response;
+    } catch (err) {
+      console.error('MiniKit payment error:', err);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error initiating payment", error);
     return null;
   }
 };
@@ -43,26 +53,34 @@ const handlePay = async () => {
     console.error("MiniKit is not installed");
     return;
   }
-  const sendPaymentResponse = await sendPayment();
-  const response = sendPaymentResponse?.finalPayload;
-  if (!response) {
-    return;
-  }
-
-  if (response.status == "success") {
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/confirm-payment`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payload: response }),
-    });
-    const payment = await res.json();
-    if (payment.success) {
-      // Congrats your payment was successful!
-      console.log("SUCCESS!");
-    } else {
-      // Payment failed
-      console.log("FAILED!");
+  try {
+    const sendPaymentResponse = await sendPayment();
+    if (!sendPaymentResponse) {
+      console.error('Payment failed or was cancelled');
+      return;
     }
+
+    const response = sendPaymentResponse.finalPayload;
+    if (!response) {
+      console.error('No final payload from payment');
+      return;
+    }
+
+    if (response.status === "success") {
+      const res = await fetch(`/api/confirm-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: response }),
+      });
+      const payment = await res.json();
+      if (payment.success) {
+        console.log("Payment successful!");
+      } else {
+        console.error("Payment confirmation failed");
+      }
+    }
+  } catch (err) {
+    console.error('Payment handling error:', err);
   }
 };
 
