@@ -49,6 +49,11 @@ export default function Chat() {
 
   useEffect(() => {
     if (!session) return
+    
+    // Store session ID for Pusher auth
+    if (session.user?.id) {
+      sessionStorage.setItem('user_id', session.user.id)
+    }
 
     // Subscribe to both chat and presence channels
     const chatChannel = pusherClient.subscribe(CHANNELS.CHAT)
@@ -56,13 +61,27 @@ export default function Chat() {
 
     // Handle presence events
     presenceChannel.bind('pusher:subscription_succeeded', (members: any) => {
+      console.log('Presence subscription succeeded:', members)
       setConnectedUsers(members.count)
+      
+      // Update usernames from presence data
+      const userMap: Record<string, string> = {}
+      members.each((member: any) => {
+        userMap[member.id] = member.info.username
+      })
+      setUsernames(prev => ({...prev, ...userMap}))
     })
-    presenceChannel.bind('pusher:member_added', () => {
+    presenceChannel.bind('pusher:member_added', (member: any) => {
+      console.log('Member added:', member)
       setConnectedUsers(prev => prev + 1)
+      setUsernames(prev => ({...prev, [member.id]: member.info.username}))
     })
-    presenceChannel.bind('pusher:member_removed', () => {
+    presenceChannel.bind('pusher:member_removed', (member: any) => {
+      console.log('Member removed:', member)
       setConnectedUsers(prev => Math.max(1, prev - 1))
+    })
+    presenceChannel.bind('pusher:subscription_error', (error: any) => {
+      console.error('Presence subscription error:', error)
     })
 
     // Handle chat messages
@@ -109,6 +128,42 @@ export default function Chat() {
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Chat</h2>
           <p className="text-gray-600">Please sign in with World ID to continue</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show username setup if not set
+  if (!username) {
+    return (
+      <div className="flex items-center justify-center h-[100dvh] px-4 bg-white overscroll-none">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Display Name</h2>
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            const trimmedName = username.trim()
+            if (trimmedName) {
+              localStorage.setItem(`username_${session.user.id}`, trimmedName)
+              setUsername(trimmedName)
+              setUsernames(prev => ({...prev, [session.user.id]: trimmedName}))
+            }
+          }} className="flex flex-col items-center gap-4">
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter display name"
+              className="border rounded-lg px-4 py-2 w-64 focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
+              autoFocus
+            />
+            <button 
+              type="submit"
+              disabled={!username.trim()}
+              className="bg-[#00A7B7] text-white px-6 py-2 rounded-full font-medium hover:bg-[#008999] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Continue to Chat
+            </button>
+          </form>
         </div>
       </div>
     )

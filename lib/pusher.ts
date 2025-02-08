@@ -7,7 +7,7 @@ export const pusher = new Pusher({
   key: process.env.PUSHER_KEY!,
   secret: process.env.PUSHER_SECRET!,
   cluster: process.env.PUSHER_CLUSTER!,
-  useTLS: true, // Always use TLS
+  useTLS: true,
 })
 
 // Client-side Pusher instance
@@ -17,6 +17,9 @@ export const pusherClient = new PusherClient(
     cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     enabledTransports: ['ws', 'wss'],
     authEndpoint: '/api/pusher/auth',
+    auth: {
+      params: {} // Username handled by auth endpoint
+    },
     // Development-specific options
     ...(process.env.NODE_ENV === 'development' && {
       wsHost: process.env.NEXT_PUBLIC_WS_HOST || undefined,
@@ -33,7 +36,7 @@ const ENV_PREFIX = process.env.NODE_ENV === 'development' ? 'dev-' : 'prod-'
 
 export const CHANNELS = {
   CHAT: `${ENV_PREFIX}chat-channel`,
-  PRESENCE: `${ENV_PREFIX}presence-room`,
+  PRESENCE: `presence-${ENV_PREFIX}room`,
   PAYMENT: `${ENV_PREFIX}private-payments`,
 } as const
 
