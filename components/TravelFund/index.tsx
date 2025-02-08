@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { X } from 'lucide-react'
+import { useState } from 'react'
+import confetti from 'canvas-confetti'
 
 type Props = {
   onClose: () => void
@@ -8,6 +10,31 @@ type Props = {
 }
 
 const TravelFundPrompt = ({ onClose, onContribute }: Props) => {
+  const [progress, setProgress] = useState(52)
+  const [isContributing, setIsContributing] = useState(false)
+
+  const handleContribute = async () => {
+    setIsContributing(true)
+    
+    // Trigger confetti
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    })
+
+    // Animate progress bar
+    setProgress(prev => Math.min(prev + 5, 100))
+    
+    // Call parent handler
+    onContribute?.()
+    
+    // Wait for animation
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    setIsContributing(false)
+    onClose()
+  }
+
   return (
     <>
       {/* Backdrop */}
@@ -64,19 +91,24 @@ const TravelFundPrompt = ({ onClose, onContribute }: Props) => {
 
           <div className="mt-6">
             <div className="bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
-              <div className="bg-[#00A7B7] h-full w-[52%] rounded-full transition-all duration-500 ease-out"/>
+              <motion.div 
+                className="bg-[#00A7B7] h-full rounded-full"
+                initial={{ width: `${progress}%` }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              />
             </div>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">$1,556/$3,000 saved for your Bali/Tokyo food adventure</p>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              ${Math.floor(1556 + (progress - 52) * 30)}/$3,000 saved for your Bali/Tokyo food adventure
+            </p>
           </div>
 
           <button 
-            onClick={() => {
-              onContribute?.()
-              onClose()
-            }}
-            className="btn-primary w-full mt-6 py-3"
+            onClick={handleContribute}
+            disabled={isContributing}
+            className="btn-primary w-full mt-6 py-3 disabled:opacity-50 transition-opacity"
           >
-            Add to Travel Fund
+            {isContributing ? 'Contributing...' : 'Add to Travel Fund'}
           </button>
         </div>
       </motion.div>
