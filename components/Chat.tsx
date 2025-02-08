@@ -41,6 +41,7 @@ export default function Chat() {
   const [isEditingName, setIsEditingName] = useState(false)
   const [connectedUsers, setConnectedUsers] = useState<number>(1)
   const [isScanModalOpen, setIsScanModalOpen] = useState(false)
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const presenceChannelRef = useRef<PresenceChannel | null>(null)
   const { data: session } = useSession()
@@ -384,6 +385,7 @@ export default function Chat() {
                     isMessage={true}
                     currentUserId={session.user.id}
                     initiatorId={msg.userId}
+                    onModalStateChange={setIsPayModalOpen}
                     onJoin={async () => {
                       try {
                         await fetch('/api/pusher/message', {
@@ -429,34 +431,36 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="px-3 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky bottom-0 pb-safe border-t border-gray-100 dark:border-gray-800 z-50">
-        <form onSubmit={sendMessage} className="flex gap-2 items-center touch-manipulation">
-          <ScanButton 
-            onClick={() => setIsScanModalOpen(true)}
-          />
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="input-primary flex-1 text-[15px] bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 placeholder-gray-400 dark:placeholder-gray-500"
-            autoComplete="off"
-            autoCorrect="off"
-            style={{
-              minHeight: '40px',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          />
-          <button
-            type="submit"
-            disabled={!newMessage.trim()}
-            className="btn-primary text-[15px] bg-gradient-to-r from-[#00A7B7] to-[#008999] hover:from-[#008999] hover:to-[#007A8A] disabled:from-gray-400 disabled:to-gray-400 min-w-[70px] h-[40px] transition-all duration-200 ease-out transform active:scale-[0.97] select-none"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            Send
-          </button>
-        </form>
-      </div>
+      {!isPayModalOpen && (
+        <div className="px-3 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky bottom-0 pb-safe border-t border-gray-100 dark:border-gray-800 z-50">
+          <form onSubmit={sendMessage} className="flex gap-2 items-center touch-manipulation">
+            <ScanButton 
+              onClick={() => setIsScanModalOpen(true)}
+            />
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type your message..."
+              className="input-primary flex-1 text-[15px] bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 placeholder-gray-400 dark:placeholder-gray-500"
+              autoComplete="off"
+              autoCorrect="off"
+              style={{
+                minHeight: '40px',
+                WebkitTapHighlightColor: 'transparent'
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim()}
+              className="btn-primary text-[15px] bg-gradient-to-r from-[#00A7B7] to-[#008999] hover:from-[#008999] hover:to-[#007A8A] disabled:from-gray-400 disabled:to-gray-400 min-w-[70px] h-[40px] transition-all duration-200 ease-out transform active:scale-[0.97] select-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      )}
       
       {/* Scan Modal */}
       <ScanModal

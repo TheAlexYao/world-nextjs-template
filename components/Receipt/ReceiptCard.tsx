@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { type ReceiptData } from '@/types/receipt'
 import PaymentModal from './PaymentModal'
 
@@ -18,6 +18,7 @@ type Props = {
   onPay?: () => void
   currentUserId?: string
   initiatorId?: string
+  onModalStateChange?: (isOpen: boolean) => void
 }
 
 export default function ReceiptCard({ 
@@ -30,9 +31,15 @@ export default function ReceiptCard({
   onJoin,
   onPay,
   currentUserId,
-  initiatorId
+  initiatorId,
+  onModalStateChange
 }: Props) {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  
+  // Notify parent of modal state changes
+  useEffect(() => {
+    onModalStateChange?.(showPaymentModal)
+  }, [showPaymentModal, onModalStateChange])
   
   // Get current user's status
   const currentParticipant = currentUserId ? participants.find(p => p.userId === currentUserId) : null
