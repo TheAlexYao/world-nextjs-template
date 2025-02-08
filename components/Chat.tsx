@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { pusherClient, CHANNELS, EVENTS } from '@/lib/pusher'
+import ScanButton from './Receipt/ScanButton'
+import ScanModal from './Receipt/ScanModal'
 
 type Message = {
   message: string
@@ -19,6 +21,7 @@ export default function Chat() {
   const [usernames, setUsernames] = useState<Record<string, string>>({})
   const [isEditingName, setIsEditingName] = useState(false)
   const [connectedUsers, setConnectedUsers] = useState<number>(1)
+  const [isScanModalOpen, setIsScanModalOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
 
@@ -327,17 +330,9 @@ export default function Chat() {
       {/* Input */}
       <div className="px-4 py-3 bg-white sticky bottom-0 pb-safe">
         <form onSubmit={sendMessage} className="flex gap-2 items-center">
-          <button
-            type="button"
-            onClick={() => {
-              // TODO: Start receipt scan flow
-              console.log('Starting receipt scan...')
-            }}
-            className="text-gray-500 hover:text-[#00A7B7] p-2 rounded-full hover:bg-gray-100 transition-colors"
-            title="Scan Receipt"
-          >
-            📷
-          </button>
+          <ScanButton 
+            onClick={() => setIsScanModalOpen(true)}
+          />
           <input
             type="text"
             value={newMessage}
@@ -354,6 +349,12 @@ export default function Chat() {
           </button>
         </form>
       </div>
+      
+      {/* Scan Modal */}
+      <ScanModal
+        isOpen={isScanModalOpen}
+        onClose={() => setIsScanModalOpen(false)}
+      />
     </div>
   )
 } 
