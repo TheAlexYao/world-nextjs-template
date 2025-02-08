@@ -104,7 +104,14 @@ export default function Chat() {
 
     // Handle presence events
     presenceChannel.bind('pusher:subscription_succeeded', (members: any) => {
-      console.log('✅ Presence subscription succeeded:', members)
+      console.log('✅ Presence subscription succeeded:', {
+        members,
+        count: members.count,
+        membersList: Object.keys(members.members).map(id => ({
+          id,
+          info: members.members[id]
+        }))
+      })
       setConnectedUsers(members.count)
     })
     
@@ -137,17 +144,42 @@ export default function Chat() {
 
     // Handle split joins
     chatChannel.bind(EVENTS.SPLIT_JOIN, (data: { userId: string, messageTimestamp: string }) => {
+      console.log('Split join event:', {
+        data,
+        currentMessages: messages,
+        usernames,
+        session: session?.user
+      })
       setMessages(prev => prev.map(msg => {
         if (msg.timestamp === data.messageTimestamp && msg.receipt) {
-          return {
-            ...msg,
-            receipt: {
-              ...msg.receipt,
-              participants: msg.receipt.participants.map(p => 
+          // Check if user is already in participants
+          const existingParticipant = msg.receipt.participants.find(p => p.userId === data.userId)
+          
+          // Always update the participant list
+          const updatedParticipants = existingParticipant
+            ? msg.receipt.participants.map(p => 
                 p.userId === data.userId 
                   ? { ...p, hasPaid: false }
                   : p
               )
+            : [
+                ...msg.receipt.participants,
+                {
+                  userId: data.userId,
+                  // Use current user's username if it's them joining
+                  username: data.userId === session?.user?.id 
+                    ? username 
+                    : (usernames[data.userId] || 'Unknown'),
+                  verification: (session?.user?.verification_level || 'phone') as 'orb' | 'phone',
+                  hasPaid: false
+                }
+              ]
+
+          return {
+            ...msg,
+            receipt: {
+              ...msg.receipt,
+              participants: updatedParticipants
             }
           }
         }
@@ -471,29 +503,32 @@ export default function Chat() {
         username={username}
         onScanComplete={async () => {
           try {
-            const presenceMembers = presenceChannelRef.current?.members
-            console.log('Current members:', {
-              presenceMembers,
-              members,
-              connectedUsers
-            })
+            const presenceChannel = presenceChannelRef.current
+            if (!presenceChannel) {
+              console.error('No presence channel')
+              return
+            }
 
-            // Get all members from the presence channel's members object
-            const allParticipants = Object.entries(presenceMembers?.members || {})
-              .map(([id, member]: [string, any]) => {
-                console.log('Processing member:', { id, member })
-                return {
-                  userId: id,
-                  username: id === session?.user?.id ? username : (usernames[id] || member?.info?.username || 'Unknown'),
-                  verification: member?.info?.verification_level || 'phone',
-                  hasPaid: false
-                }
-              })
+            // Get members directly from presence channel
+            const members = presenceChannel.members
+            console.log('Raw presence members:', members)
+
+            // Convert members to array properly
+            const allParticipants = Object.keys(members.members).map(id => {
+              const member = members.members[id]
+              console.log('Processing member:', { id, member })
+              return {
+                userId: id,
+                username: id === session?.user?.id ? username : (usernames[id] || member?.info?.username || 'Unknown'),
+                verification: (member?.info?.verification_level || 'phone') as 'orb' | 'phone',
+                hasPaid: false
+              }
+            })
 
             console.log('Participants being sent:', {
               allParticipants,
               connectedUsers,
-              presenceMembers
+              rawMembers: members.members
             })
 
             // Send receipt with all participants

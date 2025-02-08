@@ -42,7 +42,22 @@ export default function ReceiptCard({
   }, [showPaymentModal, onModalStateChange])
   
   // Get current user's status
-  const currentParticipant = currentUserId ? participants.find(p => p.userId === currentUserId) : null
+  const currentParticipant = currentUserId ? participants.find(p => {
+    console.log('Checking participant:', {
+      participantId: p.userId,
+      currentUserId,
+      match: p.userId === currentUserId
+    })
+    return p.userId === currentUserId
+  }) : null
+
+  console.log('Participant check:', {
+    participants,
+    currentUserId,
+    currentParticipant,
+    participantIds: participants.map(p => p.userId)
+  })
+  
   const isInitiator = currentUserId === initiatorId
   
   // Everyone needs to join and pay, including initiator
