@@ -52,12 +52,14 @@ export default function Chat() {
   }, [messages])
 
   useEffect(() => {
-    if (!session) return
+    if (!session?.user?.id) {
+      console.log('No session, skipping Pusher setup')
+      return
+    }
     
     // Store session ID for Pusher auth
-    if (session.user?.id) {
-      sessionStorage.setItem('user_id', session.user.id)
-    }
+    console.log('Setting up Pusher with user:', session.user.id)
+    sessionStorage.setItem('user_id', session.user.id)
 
     // Subscribe to both chat and presence channels
     const chatChannel = pusherClient.subscribe(CHANNELS.CHAT)
@@ -65,7 +67,7 @@ export default function Chat() {
 
     // Handle presence events
     presenceChannel.bind('pusher:subscription_succeeded', (members: any) => {
-      console.log('Presence subscription succeeded:', members)
+      console.log('✅ Presence subscription succeeded:', members)
       setConnectedUsers(members.count)
       
       // Update usernames from presence data
@@ -85,7 +87,11 @@ export default function Chat() {
       setConnectedUsers(prev => Math.max(1, prev - 1))
     })
     presenceChannel.bind('pusher:subscription_error', (error: any) => {
-      console.error('Presence subscription error:', error)
+      console.error('❌ Presence subscription error:', {
+        error,
+        session: session?.user,
+        username
+      })
     })
 
     // Handle chat messages
@@ -251,6 +257,16 @@ export default function Chat() {
             className="text-sm text-gray-500 hover:text-gray-900"
           >
             Sign out
+          </button>
+          <button
+            onClick={() => {
+              localStorage.clear()
+              sessionStorage.clear()
+              window.location.reload()
+            }}
+            className="text-sm text-red-500 hover:text-red-700"
+          >
+            Clear Data
           </button>
         </div>
       </div>

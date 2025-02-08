@@ -5,60 +5,60 @@ import { pusher } from '@/lib/pusher'
 
 export async function POST(req: Request) {
   try {
-    console.log('Starting Pusher auth...')
-    const session = await getServerSession(authOptions)
-    console.log('Session:', {
-      exists: !!session,
-      user: session?.user,
-      hasId: !!session?.user?.id,
-      hasVerification: !!session?.user?.verification_level
+    console.log('🔑 Auth request received')
+    
+    // Parse request body first to catch JSON errors
+    const data = await req.json().catch(e => {
+      console.error('❌ JSON parse error:', e)
+      throw new Error('Invalid JSON')
     })
-    if (!session?.user) {
-      console.log('Auth failed: No session')
+    console.log('📦 Request data:', data)
+
+    const { socket_id, channel_name } = data
+    if (!socket_id || !channel_name) {
+      console.error('❌ Missing fields:', { socket_id, channel_name })
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    console.log('🔍 Getting session...')
+    const session = await getServerSession(authOptions)
+    console.log('👤 Session:', { 
+      exists: !!session,
+      userId: session?.user?.id,
+      verificationLevel: session?.user?.verification_level
+    })
+
+    if (!session?.user?.id) {
+      console.error('❌ No session or user ID')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await req.json()
-    console.log('Auth request:', {
-      socketId: data.socket_id,
-      channel: data.channel_name,
-      userId: session.user.id,
-      username: data.username,
-      verification_level: session.user.verification_level
-    })
-
-    const socketId = data.socket_id
-    const channel = data.channel_name
-
     // Only authorize presence channels
-    if (!channel.startsWith('presence-')) {
-      console.log('Not a presence channel:', channel)
+    if (!channel_name.startsWith('presence-')) {
+      console.error('❌ Invalid channel:', channel_name)
       return NextResponse.json({ error: 'Not a presence channel' }, { status: 403 })
     }
 
-    // Auth for presence channel
     const presenceData = {
       user_id: session.user.id,
       user_info: {
-        verification_level: session.user.verification_level,
+        verification_level: session.user.verification_level || 'unknown',
         username: data.username || session.user.id.slice(-4)
       }
     }
+    console.log('📝 Presence data:', presenceData)
 
-    console.log('Presence data:', presenceData)
-
-    // Use the correct authorization method
-    const authResponse = pusher.authorizeChannel(socketId, channel, presenceData)
-    console.log('Auth success:', authResponse)
-    return NextResponse.json(authResponse)
-  } catch (error) {
-    console.error('Error in Pusher auth:', error)
-    // Log more error details
-    if (error instanceof Error) {
-      console.error('Error name:', error.name)
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
+    try {
+      console.log('🔐 Authorizing channel...')
+      const authResponse = pusher.authorizeChannel(socket_id, channel_name, presenceData)
+      console.log('✅ Auth success:', authResponse)
+      return NextResponse.json(authResponse)
+    } catch (e) {
+      console.error('❌ Pusher authorize failed:', e)
+      throw e
     }
+  } catch (error) {
+    console.error('❌ Auth error:', error)
     return NextResponse.json({ 
       error: 'Auth failed',
       details: error instanceof Error ? error.message : 'Unknown error'

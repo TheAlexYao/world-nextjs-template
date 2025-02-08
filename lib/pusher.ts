@@ -28,9 +28,10 @@ export const pusherClient = new PusherClient(
       wsHost: process.env.NEXT_PUBLIC_WS_HOST || undefined,
       wsPort: process.env.NEXT_PUBLIC_WS_PORT ? parseInt(process.env.NEXT_PUBLIC_WS_PORT) : undefined,
       forceTLS: true,
-      enableLogging: true,
       disableStats: true,
     }),
+    // Enable debug mode
+    debug: true
   }
 )
 
