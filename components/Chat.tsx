@@ -21,10 +21,16 @@ export default function Chat() {
 
   // Get username from MiniKit when component mounts
   useEffect(() => {
+    console.log('MiniKit:', window.MiniKit)
     if (window.MiniKit?.user?.username) {
+      console.log('Setting username:', window.MiniKit.user.username)
       setUsername(window.MiniKit.user.username)
+    } else {
+      console.log('No MiniKit username found')
+      // Fallback to last 4 chars of ID if no username
+      setUsername(session?.user?.id?.slice(-4) || 'Anonymous')
     }
-  }, [])
+  }, [session])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
