@@ -112,7 +112,7 @@ export default function ScanModal({
       
       return () => clearTimeout(timer)
     }
-  }, [isOpen, onScanComplete, session, connectedUsers, participants, username])
+  }, [isOpen, onScanComplete, session, connectedUsers, participants, username, onClose])
 
   return (
     <AnimatePresence>
