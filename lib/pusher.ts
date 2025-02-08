@@ -16,6 +16,7 @@ export const pusherClient = new PusherClient(
   {
     cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     enabledTransports: ['ws', 'wss'],
+    authEndpoint: '/api/pusher/auth',
     // Development-specific options
     ...(process.env.NODE_ENV === 'development' && {
       wsHost: process.env.NEXT_PUBLIC_WS_HOST || undefined,

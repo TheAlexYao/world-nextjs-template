@@ -18,6 +18,7 @@ export default function Chat() {
   const [username, setUsername] = useState<string>('')
   const [usernames, setUsernames] = useState<Record<string, string>>({})
   const [isEditingName, setIsEditingName] = useState(false)
+  const [connectedUsers, setConnectedUsers] = useState<number>(1)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
 
@@ -49,18 +50,32 @@ export default function Chat() {
   useEffect(() => {
     if (!session) return
 
-    // Subscribe to the chat channel
-    const channel = pusherClient.subscribe(CHANNELS.CHAT)
+    // Subscribe to both chat and presence channels
+    const chatChannel = pusherClient.subscribe(CHANNELS.CHAT)
+    const presenceChannel = pusherClient.subscribe(CHANNELS.PRESENCE)
 
-    // Bind to message events
-    channel.bind(EVENTS.MESSAGE, (data: Message) => {
+    // Handle presence events
+    presenceChannel.bind('pusher:subscription_succeeded', (members: any) => {
+      setConnectedUsers(members.count)
+    })
+    presenceChannel.bind('pusher:member_added', () => {
+      setConnectedUsers(prev => prev + 1)
+    })
+    presenceChannel.bind('pusher:member_removed', () => {
+      setConnectedUsers(prev => Math.max(1, prev - 1))
+    })
+
+    // Handle chat messages
+    chatChannel.bind(EVENTS.MESSAGE, (data: Message) => {
       setMessages((prev) => [...prev, data])
     })
 
     // Cleanup on unmount
     return () => {
-      channel.unbind_all()
+      chatChannel.unbind_all()
+      presenceChannel.unbind_all()
       pusherClient.unsubscribe(CHANNELS.CHAT)
+      pusherClient.unsubscribe(CHANNELS.PRESENCE)
     }
   }, [session])
 
@@ -105,6 +120,7 @@ export default function Chat() {
       <div className="flex items-center px-4 py-3 border-b bg-white sticky top-0">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold text-gray-900">Group Chat</h1>
+          <div className="text-xs text-gray-500">({connectedUsers} online)</div>
           <div className="flex items-center gap-2 text-sm">
             {isEditingName ? (
               <form onSubmit={(e) => {
@@ -191,6 +207,17 @@ export default function Chat() {
       {/* Input */}
       <div className="px-4 py-3 bg-white sticky bottom-0">
         <form onSubmit={sendMessage} className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              // TODO: Start receipt scan flow
+              console.log('Starting receipt scan...')
+            }}
+            className="text-gray-500 hover:text-[#00A7B7] p-2 rounded-full hover:bg-gray-100 transition-colors"
+            title="Scan Receipt"
+          >
+            📷
+          </button>
           <input
             type="text"
             value={newMessage}
