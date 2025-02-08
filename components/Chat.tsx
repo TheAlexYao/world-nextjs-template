@@ -473,26 +473,18 @@ export default function Chat() {
               connectedUsers
             })
 
-            const initiator = {
-              userId: session?.user?.id || '',
-              username: username,
-              verification: session?.user?.verification_level || 'phone',
-              hasPaid: true
-            }
-
-            // Get all current members except initiator and mark them as not paid
-            const otherParticipants = Array.from((presenceChannelRef.current?.members.members || new Map()) as Map<string, PresenceMember>)
+            // Get all current members and mark initiator as paid
+            const allParticipants = Array.from((presenceChannelRef.current?.members.members || new Map()) as Map<string, PresenceMember>)
               .map(([id, member]) => ({
                 userId: id,
-                username: usernames[id] || 'Unknown',
+                username: id === session?.user?.id ? username : (usernames[id] || 'Unknown'),
                 verification: member.info.verification_level,
-                hasPaid: false
+                hasPaid: id === session?.user?.id // Only initiator is paid
               }))
-              .filter(member => member.userId !== initiator.userId)
 
             console.log('Participants being sent:', {
-              initiator,
-              otherParticipants
+              allParticipants,
+              connectedUsers
             })
 
             // Send receipt with all participants
@@ -504,7 +496,7 @@ export default function Chat() {
                 username,
                 receipt: {
                   data: MOCK_RECEIPT,
-                  participants: [initiator, ...otherParticipants]
+                  participants: allParticipants
                 }
               }),
             })
