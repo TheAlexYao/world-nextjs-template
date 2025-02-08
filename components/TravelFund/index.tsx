@@ -1,7 +1,13 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { X } from 'lucide-react'
 
-const TravelFundPrompt = () => {
+type Props = {
+  onClose: () => void
+  onContribute?: () => void
+}
+
+const TravelFundPrompt = ({ onClose, onContribute }: Props) => {
   return (
     <>
       {/* Backdrop */}
@@ -10,6 +16,7 @@ const TravelFundPrompt = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/50 z-[99999]"
+        onClick={onClose}
       />
       
       {/* Content */}
@@ -17,9 +24,17 @@ const TravelFundPrompt = () => {
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className="fixed inset-x-0 bottom-0 z-[99999] max-w-lg mx-auto"
+        className="fixed inset-0 z-[99999] flex items-center justify-center px-4 pt-10 pb-6"
       >
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-t-2xl shadow-lg mx-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-lg relative">
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
           <div className="flex items-start gap-4">
             <div className="relative w-12 h-12 shrink-0">
               <Image 
@@ -54,7 +69,13 @@ const TravelFundPrompt = () => {
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">$1,556/$3,000 saved for your Bali/Tokyo food adventure</p>
           </div>
 
-          <button className="btn-primary w-full mt-6 py-3">
+          <button 
+            onClick={() => {
+              onContribute?.()
+              onClose()
+            }}
+            className="btn-primary w-full mt-6 py-3"
+          >
             Add to Travel Fund
           </button>
         </div>

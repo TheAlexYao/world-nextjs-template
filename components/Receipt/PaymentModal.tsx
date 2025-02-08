@@ -26,6 +26,11 @@ export default function PaymentModal({
     setTimeout(() => setShowTravelPrompt(true), 500)
   }
 
+  const handleContribute = () => {
+    // TODO: Add actual contribution logic
+    console.log('Contributing to travel fund')
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -92,7 +97,12 @@ export default function PaymentModal({
           </motion.div>
         </div>
       )}
-      {showTravelPrompt && <TravelFundPrompt />}
+      {showTravelPrompt && (
+        <TravelFundPrompt 
+          onClose={() => setShowTravelPrompt(false)}
+          onContribute={handleContribute}
+        />
+      )}
     </AnimatePresence>
   )
 } 
