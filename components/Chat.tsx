@@ -117,52 +117,50 @@ export default function Chat() {
   return (
     <div className="flex flex-col h-[100dvh] bg-white overscroll-none">
       {/* Header */}
-      <div className="flex items-center px-4 py-3 border-b bg-white sticky top-0">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold text-gray-900">Group Chat</h1>
-          <div className="text-xs text-gray-500">({connectedUsers} online)</div>
-          <div className="flex items-center gap-2 text-sm">
-            {isEditingName ? (
-              <form onSubmit={(e) => {
-                e.preventDefault()
-                setIsEditingName(false)
-              }} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onBlur={() => setIsEditingName(false)}
-                  placeholder="Enter display name"
-                  className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
-                  autoFocus
-                />
-                <button 
-                  type="submit"
-                  className="text-xs text-[#00A7B7] hover:text-[#008999]"
-                >
-                  Save
-                </button>
-              </form>
-            ) : (
-              <button 
-                onClick={() => setIsEditingName(true)}
-                className="flex items-center gap-1 text-gray-500 hover:text-[#00A7B7] transition-colors"
-              >
-                <span>{username}</span>
-                <span className="text-xs">(edit)</span>
-              </button>
-            )}
-          </div>
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-white sticky top-0">
+        {/* Left side: Title and user count */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-semibold text-gray-900">Chat</h1>
+          <div className="text-sm text-gray-500">{connectedUsers} online</div>
         </div>
-        <div className="ml-auto flex items-center gap-4">
-          <div className="text-sm text-gray-500">
-            {messages.length} messages
-          </div>
+
+        {/* Right side: Username and Sign out */}
+        <div className="flex items-center gap-4">
+          {isEditingName ? (
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              setIsEditingName(false)
+            }} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                onBlur={() => setIsEditingName(false)}
+                placeholder="Enter display name"
+                className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
+                autoFocus
+              />
+              <button 
+                type="submit"
+                className="text-xs text-[#00A7B7] hover:text-[#008999]"
+              >
+                Save
+              </button>
+            </form>
+          ) : (
+            <button 
+              onClick={() => setIsEditingName(true)}
+              className="flex items-center gap-1 text-gray-500 hover:text-[#00A7B7] transition-colors"
+            >
+              <span>{username}</span>
+              <span className="text-xs">✎</span>
+            </button>
+          )}
           <button
             onClick={() => signOut()}
-            className="text-sm text-gray-600 hover:text-gray-900"
+            className="text-sm text-gray-500 hover:text-gray-900"
           >
-            Sign Out
+            Sign out
           </button>
         </div>
       </div>
