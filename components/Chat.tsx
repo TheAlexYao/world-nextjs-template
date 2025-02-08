@@ -164,8 +164,13 @@ export default function Chat() {
                 }`}
               >
                 {!isCurrentUser && (
-                  <p className="text-xs font-medium mb-1">
-                    {getDisplayName(msg)} ({msg.verification_level})
+                  <p className="text-xs font-medium mb-1 flex items-center gap-1">
+                    {getDisplayName(msg)}
+                    {msg.verification_level === 'orb' ? (
+                      <span title="Orb Verified" className="text-[#00A7B7]">⦿</span>
+                    ) : (
+                      <span title="Phone Verified" className="text-[#00A7B7]">☎</span>
+                    )}
                   </p>
                 )}
                 <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>
