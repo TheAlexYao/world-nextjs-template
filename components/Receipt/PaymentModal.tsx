@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { PayBlock } from '@/components/Pay'
+import { createPortal } from 'react-dom'
 
 type Props = {
   isOpen: boolean
@@ -19,7 +20,7 @@ export default function PaymentModal({
 }: Props) {
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && createPortal(
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -79,7 +80,8 @@ export default function PaymentModal({
               <PayBlock onSuccess={onSuccess} />
             </div>
           </motion.div>
-        </motion.div>
+        </motion.div>,
+        document.body
       )}
     </AnimatePresence>
   )
