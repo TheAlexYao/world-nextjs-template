@@ -23,7 +23,7 @@ export default function PaymentModal({
 
   const handleSuccess = () => {
     onSuccess()
-    setTimeout(() => setShowTravelPrompt(true), 2000)
+    setTimeout(() => setShowTravelPrompt(true), 5000)
   }
 
   const handleContribute = () => {
@@ -76,7 +76,10 @@ export default function PaymentModal({
                     Pay for Split
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 mt-1">
-                    Your share: {currency} {amount.toFixed(2)}
+                    Your share: MYR {amount.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-[#00A7B7] mt-1">
+                    ≈ USD {(amount * 0.21).toFixed(2)}
                   </p>
                 </div>
 
@@ -86,9 +89,14 @@ export default function PaymentModal({
                   <p className="text-gray-600 dark:text-gray-300">
                     Demo Payment Amount
                   </p>
-                  <p className="text-xl font-medium text-gray-900 dark:text-white">
-                    0.1 WLD
-                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-xl font-medium text-gray-900 dark:text-white">
+                      0.1 WLD
+                    </p>
+                    <p className="text-sm text-[#00A7B7]">
+                      ≈ USD 0.10
+                    </p>
+                  </div>
                 </div>
 
                 <PayBlock onSuccess={handleSuccess} />

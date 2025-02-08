@@ -77,7 +77,10 @@ export default function ReceiptCard({
           {receipt.items.map((item, i) => (
             <div key={i} className="flex justify-between text-[15px]">
               <span className="text-[var(--color-text)]">{item.name}</span>
-              <span className="text-[var(--color-text-secondary)]">{receipt.currency} {item.price.toFixed(2)}</span>
+              <div className="text-right">
+                <span className="text-[var(--color-text-secondary)]">{receipt.currency} {item.price.toFixed(2)}</span>
+                <span className="text-xs text-[#00A7B7] block">≈ USD {(item.price * 0.21).toFixed(2)}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -86,11 +89,17 @@ export default function ReceiptCard({
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-[15px]">
             <span className="text-[var(--color-text-secondary)]">Subtotal</span>
-            <span className="text-[var(--color-text)]">{receipt.currency} {receipt.subtotal.toFixed(2)}</span>
+            <div className="text-right">
+              <span className="text-[var(--color-text)]">{receipt.currency} {receipt.subtotal.toFixed(2)}</span>
+              <span className="text-xs text-[#00A7B7] block">≈ USD {(receipt.subtotal * 0.21).toFixed(2)}</span>
+            </div>
           </div>
           <div className="flex justify-between font-medium">
             <span className="text-[var(--color-text)]">Total</span>
-            <span className="text-[var(--color-text)]">{receipt.currency} {receipt.total.toFixed(2)}</span>
+            <div className="text-right">
+              <span className="text-[var(--color-text)]">{receipt.currency} {receipt.total.toFixed(2)}</span>
+              <span className="text-xs text-[#00A7B7] block">≈ USD {(receipt.total * 0.21).toFixed(2)}</span>
+            </div>
           </div>
         </div>
 
@@ -102,9 +111,12 @@ export default function ReceiptCard({
               {connectedUsers > 1 ? `Split ${connectedUsers} ways` : 'Participants'}
             </span>
             {connectedUsers > 1 && (
-              <span className="font-medium text-[var(--color-text)]">
-                {receipt.currency} {splitAmount?.toFixed(2)} each
-              </span>
+              <div className="text-right">
+                <span className="font-medium text-[var(--color-text)]">
+                  {receipt.currency} {splitAmount?.toFixed(2)} each
+                </span>
+                <span className="text-xs text-[#00A7B7] block">≈ USD {((splitAmount || 0) * 0.21).toFixed(2)}</span>
+              </div>
             )}
           </div>
 
