@@ -53,7 +53,11 @@ const TravelFundPrompt = ({ onClose, onContribute }: Props) => {
         exit={{ y: '100%' }}
         className="fixed inset-0 z-[99999] flex items-center justify-center px-4 pt-10 pb-6"
       >
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-lg relative">
+        <motion.div 
+          className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-lg relative"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           {/* Close button */}
           <button
             onClick={onClose}
@@ -115,7 +119,7 @@ const TravelFundPrompt = ({ onClose, onContribute }: Props) => {
           >
             {isContributing ? 'Contributing...' : 'Add to Travel Fund'}
           </button>
-        </div>
+        </motion.div>
       </motion.div>
     </>
   )

@@ -23,7 +23,7 @@ export default function PaymentModal({
 
   const handleSuccess = () => {
     onSuccess()
-    setTimeout(() => setShowTravelPrompt(true), 500)
+    setTimeout(() => setShowTravelPrompt(true), 2000)
   }
 
   const handleContribute = () => {
