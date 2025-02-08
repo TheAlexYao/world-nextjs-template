@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { PayBlock } from '@/components/Pay'
+import { useState } from 'react'
+import TravelFundPrompt from '@/components/TravelFund'
 
 type Props = {
   isOpen: boolean
@@ -17,6 +19,13 @@ export default function PaymentModal({
   amount,
   currency
 }: Props) {
+  const [showTravelPrompt, setShowTravelPrompt] = useState(false)
+
+  const handleSuccess = () => {
+    onSuccess()
+    setTimeout(() => setShowTravelPrompt(true), 500)
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -77,12 +86,13 @@ export default function PaymentModal({
                   </p>
                 </div>
 
-                <PayBlock onSuccess={onSuccess} />
+                <PayBlock onSuccess={handleSuccess} />
               </div>
             </motion.div>
           </motion.div>
         </div>
       )}
+      {showTravelPrompt && <TravelFundPrompt />}
     </AnimatePresence>
   )
 } 

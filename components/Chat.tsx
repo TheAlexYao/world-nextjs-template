@@ -227,7 +227,7 @@ export default function Chat() {
       pusherClient.unsubscribe(CHANNELS.PRESENCE)
       pusherClient.disconnect()
     }
-  }, [session?.user?.id, username, session?.user?.verification_level])
+  }, [session?.user?.id, username, session?.user?.verification_level, messages, usernames, session?.user])
 
   useEffect(() => {
     // iOS keyboard handling
