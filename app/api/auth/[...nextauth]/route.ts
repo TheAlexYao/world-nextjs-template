@@ -15,6 +15,7 @@ const authOptions: NextAuthOptions = {
       idToken: true,
       checks: ["state", "nonce", "pkce"],
       profile(profile) {
+        console.log('World ID Profile:', JSON.stringify(profile, null, 2));
         return {
           id: profile.sub,
           verification_level: profile["https://id.worldcoin.org/v1"].verification_level,

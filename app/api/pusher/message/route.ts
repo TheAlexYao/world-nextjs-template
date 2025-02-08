@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       message,
       userId: session.user.id,
       verification_level: session.user.verification_level,
-      username,
+      username: session.user.username,
       timestamp: new Date().toISOString(),
     })
 
