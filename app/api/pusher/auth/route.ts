@@ -7,19 +7,7 @@ export async function POST(req: Request) {
   try {
     console.log('🔑 Auth request received')
     
-    // Parse request body first to catch JSON errors
-    const data = await req.json().catch(e => {
-      console.error('❌ JSON parse error:', e)
-      throw new Error('Invalid JSON')
-    })
-    console.log('📦 Request data:', data)
-
-    const { socket_id, channel_name } = data
-    if (!socket_id || !channel_name) {
-      console.error('❌ Missing fields:', { socket_id, channel_name })
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
-
+    // Get session first to fail fast
     console.log('🔍 Getting session...')
     const session = await getServerSession(authOptions)
     console.log('👤 Session:', { 
@@ -30,7 +18,24 @@ export async function POST(req: Request) {
 
     if (!session?.user?.id) {
       console.error('❌ No session or user ID')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized', details: 'No valid session found' }, { status: 401 })
+    }
+
+    // Parse request body
+    const data = await req.json().catch(e => {
+      console.error('❌ JSON parse error:', e)
+      return null
+    })
+    
+    if (!data) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    console.log('📦 Request data:', data)
+
+    const { socket_id, channel_name } = data
+    if (!socket_id || !channel_name) {
+      console.error('❌ Missing fields:', { socket_id, channel_name })
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
     // Only authorize presence channels
@@ -55,7 +60,10 @@ export async function POST(req: Request) {
       return NextResponse.json(authResponse)
     } catch (e) {
       console.error('❌ Pusher authorize failed:', e)
-      throw e
+      return NextResponse.json({ 
+        error: 'Pusher authorization failed',
+        details: e instanceof Error ? e.message : 'Unknown error'
+      }, { status: 500 })
     }
   } catch (error) {
     console.error('❌ Auth error:', error)

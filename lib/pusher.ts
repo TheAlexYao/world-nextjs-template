@@ -21,6 +21,9 @@ export const pusherClient = new PusherClient(
       params: {
         username: typeof window !== 'undefined' ? 
           localStorage.getItem(`username_${window.sessionStorage.getItem('user_id')}`) : undefined
+      },
+      headers: {
+        'Content-Type': 'application/json',
       }
     },
     // Development-specific options
