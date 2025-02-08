@@ -94,12 +94,13 @@ export default function Chat() {
     
     presenceChannel.bind('pusher:subscription_error', (error: any) => {
       console.error('❌ Presence subscription error:', {
-        error,
+        error: JSON.stringify(error, null, 2),
         session: {
           id: session?.user?.id,
           verification_level: session?.user?.verification_level
         },
-        channel: presenceChannel.name
+        channel: presenceChannel.name,
+        state: pusherClient.connection.state
       })
     })
 

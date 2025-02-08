@@ -27,17 +27,13 @@ export async function POST(req: Request) {
     }
 
     // Parse request body
-    const data = await req.json().catch(e => {
-      console.error('❌ JSON parse error:', e)
-      return null
-    })
+    const data = await req.text()
+    const params = new URLSearchParams(data)
+    const socket_id = params.get('socket_id')
+    const channel_name = params.get('channel_name')
     
-    if (!data) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-    }
-    console.log('📦 Request data:', data)
+    console.log('📦 Request data:', { socket_id, channel_name })
 
-    const { socket_id, channel_name } = data
     if (!socket_id || !channel_name) {
       console.error('❌ Missing fields:', { socket_id, channel_name })
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -59,11 +55,23 @@ export async function POST(req: Request) {
 
     try {
       console.log('🔐 Authorizing channel...')
+      console.log('Auth request:', {
+        socket_id,
+        channel_name,
+        user_id: session.user.id,
+        verification_level: session.user.verification_level
+      })
       const authResponse = pusher.authorizeChannel(socket_id, channel_name, presenceData)
       console.log('✅ Auth success:', authResponse)
       return NextResponse.json(authResponse)
     } catch (e) {
-      console.error('❌ Pusher authorize failed:', e)
+      console.error('❌ Pusher authorize failed:', {
+        error: e instanceof Error ? e.message : e,
+        stack: e instanceof Error ? e.stack : undefined,
+        socket_id,
+        channel_name,
+        presenceData
+      })
       return NextResponse.json({ 
         error: 'Pusher authorization failed',
         details: e instanceof Error ? e.message : 'Unknown error',
