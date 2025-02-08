@@ -16,6 +16,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [username, setUsername] = useState<string>('')
+  const [usernames, setUsernames] = useState<Record<string, string>>({})
   const [isEditingName, setIsEditingName] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
@@ -23,9 +24,18 @@ export default function Chat() {
   // Set default username from ID
   useEffect(() => {
     if (session?.user?.id) {
-      setUsername(session.user.id.slice(-4))
+      const defaultName = session.user.id.slice(-4)
+      setUsername(defaultName)
+      setUsernames(prev => ({...prev, [session.user.id]: defaultName}))
     }
   }, [session])
+
+  // Update usernames map when username changes
+  useEffect(() => {
+    if (session?.user?.id && username) {
+      setUsernames(prev => ({...prev, [session.user.id]: username}))
+    }
+  }, [username, session?.user?.id])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -67,6 +77,11 @@ export default function Chat() {
     } catch (error) {
       console.error('Error sending message:', error)
     }
+  }
+
+  // Update message display to use latest username
+  const getDisplayName = (msg: Message) => {
+    return usernames[msg.userId] || msg.username
   }
 
   if (!session) {
@@ -150,7 +165,7 @@ export default function Chat() {
               >
                 {!isCurrentUser && (
                   <p className="text-xs font-medium mb-1">
-                    {msg.username} ({msg.verification_level})
+                    {getDisplayName(msg)} ({msg.verification_level})
                   </p>
                 )}
                 <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>
