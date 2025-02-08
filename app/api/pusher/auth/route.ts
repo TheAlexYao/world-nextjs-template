@@ -52,8 +52,7 @@ export async function POST(req: Request) {
     const presenceData = {
       user_id: session.user.id,
       user_info: {
-        verification_level: session.user.verification_level || 'unknown',
-        username: data.username || session.user.id.slice(-4)
+        verification_level: session.user.verification_level || 'unknown'
       }
     }
     console.log('📝 Presence data:', presenceData)

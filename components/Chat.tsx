@@ -85,7 +85,9 @@ export default function Chat() {
       // Update usernames from presence data
       const userMap: Record<string, string> = {}
       members.each((member: any) => {
-        userMap[member.id] = member.info.username
+        if (member.id === session.user.id) {
+          userMap[member.id] = username
+        }
       })
       setUsernames(prev => ({...prev, ...userMap}))
     })
@@ -97,7 +99,6 @@ export default function Chat() {
           id: session?.user?.id,
           verification_level: session?.user?.verification_level
         },
-        username,
         channel: presenceChannel.name
       })
     })
@@ -190,23 +191,21 @@ export default function Chat() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Display Name</h2>
           <form onSubmit={(e) => {
             e.preventDefault()
-            const input = e.currentTarget.querySelector('input')
+            const input = e.currentTarget.querySelector('input') as HTMLInputElement
             const newUsername = input?.value || ''
             if (newUsername.trim()) {
-              updateUsername(newUsername)
+              setUsername(newUsername.trim())
             }
           }} className="flex flex-col items-center gap-4">
             <input
               type="text"
-              defaultValue=""
-              onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter display name"
               className="border rounded-lg px-4 py-2 w-64 focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7]"
               autoFocus
+              minLength={2}
             />
             <button 
               type="submit"
-              disabled={!username.trim()}
               className="bg-[#00A7B7] text-white px-6 py-2 rounded-full font-medium hover:bg-[#008999] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue to Chat
@@ -232,27 +231,20 @@ export default function Chat() {
           {isEditingName ? (
             <form onSubmit={(e) => {
               e.preventDefault()
-              const input = e.currentTarget.querySelector('input')
+              const input = e.currentTarget.querySelector('input') as HTMLInputElement
               const newUsername = input?.value || ''
               if (newUsername.trim()) {
-                updateUsername(newUsername)
+                setUsername(newUsername.trim())
                 setIsEditingName(false)
               }
             }} className="flex items-center gap-2 max-w-full">
               <input
                 type="text"
                 defaultValue={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onBlur={() => {
-                  const trimmedName = username.trim()
-                  if (trimmedName) {
-                    updateUsername(trimmedName)
-                    setIsEditingName(false)
-                  }
-                }}
                 placeholder="Enter display name"
                 className="border rounded-full px-3 py-1 text-sm w-[140px] focus:outline-none focus:border-[#00A7B7] focus:ring-1 focus:ring-[#00A7B7] max-w-[50vw]"
                 autoFocus
+                minLength={2}
                 // Add iOS specific fixes
                 style={{
                   WebkitAppearance: 'none',
