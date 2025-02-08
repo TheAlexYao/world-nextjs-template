@@ -30,17 +30,24 @@ export async function POST(req: Request) {
     const socketId = data.socket_id
     const channel = data.channel_name
 
+    // Only authorize presence channels
+    if (!channel.startsWith('presence-')) {
+      console.log('Not a presence channel:', channel)
+      return NextResponse.json({ error: 'Not a presence channel' }, { status: 403 })
+    }
+
     // Auth for presence channel
     const presenceData = {
       user_id: session.user.id,
       user_info: {
         verification_level: session.user.verification_level,
-        username: session.user.id.slice(-4) // Default to ID slice
+        username: data.username || session.user.id.slice(-4)
       }
     }
 
     console.log('Presence data:', presenceData)
 
+    // Use the correct authorization method
     const authResponse = pusher.authorizeChannel(socketId, channel, presenceData)
     console.log('Auth success:', authResponse)
     return NextResponse.json(authResponse)
@@ -52,6 +59,9 @@ export async function POST(req: Request) {
       console.error('Error message:', error.message)
       console.error('Error stack:', error.stack)
     }
-    return NextResponse.json({ error: 'Auth failed' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Auth failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 } 

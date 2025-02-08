@@ -18,7 +18,10 @@ export const pusherClient = new PusherClient(
     enabledTransports: ['ws', 'wss'],
     authEndpoint: '/api/pusher/auth',
     auth: {
-      params: {} // Username handled by auth endpoint
+      params: {
+        username: typeof window !== 'undefined' ? 
+          localStorage.getItem(`username_${window.sessionStorage.getItem('user_id')}`) : undefined
+      }
     },
     // Development-specific options
     ...(process.env.NODE_ENV === 'development' && {
