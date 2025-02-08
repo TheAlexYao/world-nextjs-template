@@ -46,6 +46,8 @@ export const EVENTS = {
   USER_COUNT: 'user-count',
   PAYMENT_REQUEST: 'client-payment-request',
   PAYMENT_CONFIRM: 'client-payment-confirm',
+  SPLIT_JOIN: 'split-join',
+  SPLIT_PAY: 'split-pay',
 } as const
 
 // Utility function to get channel subscription count

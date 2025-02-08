@@ -4,7 +4,10 @@ import { useState, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { pusherClient, CHANNELS, EVENTS } from '@/lib/pusher'
 import ScanButton from './Receipt/ScanButton'
-import ScanModal from './Receipt/ScanModal'
+import ScanModal, { MOCK_RECEIPT } from './Receipt/ScanModal'
+import ReceiptCard from './Receipt/ReceiptCard'
+import { type ReceiptData } from '@/types/receipt'
+import { PresenceChannel } from 'pusher-js'
 
 type Message = {
   message: string
@@ -12,6 +15,22 @@ type Message = {
   timestamp: string
   verification_level: string
   username: string
+  receipt?: {
+    data: ReceiptData
+    participants: Array<{
+      userId: string
+      username: string
+      verification: 'orb' | 'phone'
+      hasPaid: boolean
+    }>
+  }
+}
+
+type PresenceMember = {
+  id: string
+  info: {
+    verification_level: 'orb' | 'phone'
+  }
 }
 
 export default function Chat() {
@@ -23,6 +42,7 @@ export default function Chat() {
   const [connectedUsers, setConnectedUsers] = useState<number>(1)
   const [isScanModalOpen, setIsScanModalOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const presenceChannelRef = useRef<PresenceChannel | null>(null)
   const { data: session } = useSession()
 
   // Load username from localStorage or set default
@@ -78,21 +98,13 @@ export default function Chat() {
 
     // Subscribe to both chat and presence channels
     const chatChannel = pusherClient.subscribe(CHANNELS.CHAT)
-    const presenceChannel = pusherClient.subscribe(CHANNELS.PRESENCE)
+    const presenceChannel = pusherClient.subscribe(CHANNELS.PRESENCE) as PresenceChannel
+    presenceChannelRef.current = presenceChannel
 
     // Handle presence events
     presenceChannel.bind('pusher:subscription_succeeded', (members: any) => {
       console.log('✅ Presence subscription succeeded:', members)
       setConnectedUsers(members.count)
-      
-      // Update usernames from presence data
-      const userMap: Record<string, string> = {}
-      members.each((member: any) => {
-        if (member.id === session.user.id) {
-          userMap[member.id] = username
-        }
-      })
-      setUsernames(prev => ({...prev, ...userMap}))
     })
     
     presenceChannel.bind('pusher:subscription_error', (error: any) => {
@@ -110,7 +122,6 @@ export default function Chat() {
     presenceChannel.bind('pusher:member_added', (member: any) => {
       console.log('Member added:', member)
       setConnectedUsers(prev => prev + 1)
-      setUsernames(prev => ({...prev, [member.id]: member.info.username}))
     })
 
     presenceChannel.bind('pusher:member_removed', (member: any) => {
@@ -121,6 +132,46 @@ export default function Chat() {
     // Handle chat messages
     chatChannel.bind(EVENTS.MESSAGE, (data: Message) => {
       setMessages((prev) => [...prev, data])
+    })
+
+    // Handle split joins
+    chatChannel.bind(EVENTS.SPLIT_JOIN, (data: { userId: string, messageTimestamp: string }) => {
+      setMessages(prev => prev.map(msg => {
+        if (msg.timestamp === data.messageTimestamp && msg.receipt) {
+          return {
+            ...msg,
+            receipt: {
+              ...msg.receipt,
+              participants: msg.receipt.participants.map(p => 
+                p.userId === data.userId 
+                  ? { ...p, hasPaid: false }
+                  : p
+              )
+            }
+          }
+        }
+        return msg
+      }))
+    })
+
+    // Handle split payments
+    chatChannel.bind(EVENTS.SPLIT_PAY, (data: { userId: string, messageTimestamp: string }) => {
+      setMessages(prev => prev.map(msg => {
+        if (msg.timestamp === data.messageTimestamp && msg.receipt) {
+          return {
+            ...msg,
+            receipt: {
+              ...msg.receipt,
+              participants: msg.receipt.participants.map(p => 
+                p.userId === data.userId 
+                  ? { ...p, hasPaid: true }
+                  : p
+              )
+            }
+          }
+        }
+        return msg
+      }))
     })
 
     // Connect after binding
@@ -175,6 +226,15 @@ export default function Chat() {
   const getDisplayName = (msg: Message) => {
     return usernames[msg.userId] || msg.username
   }
+
+  // Get current members from presence channel
+  const members = presenceChannelRef.current ? 
+    Array.from((presenceChannelRef.current.members as any).members as Map<string, PresenceMember>).map(([id, member]) => ({
+      userId: id,
+      username: usernames[id] || 'Unknown',
+      verification: member.info.verification_level,
+      hasPaid: false
+    })) : []
 
   if (!session) {
     return (
@@ -299,12 +359,12 @@ export default function Chat() {
             >
               <div
                 className={`rounded-2xl px-4 py-2 max-w-[80%] ${
-                  isCurrentUser
+                  msg.receipt ? 'bg-white' : isCurrentUser
                     ? 'bg-[#00A7B7] text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
-                {!isCurrentUser && (
+                {!isCurrentUser && !msg.receipt && (
                   <p className="text-xs font-medium mb-1 flex items-center gap-1">
                     {getDisplayName(msg)}
                     {msg.verification_level === 'orb' ? (
@@ -314,7 +374,49 @@ export default function Chat() {
                     )}
                   </p>
                 )}
-                <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>
+                {msg.receipt ? (
+                  <ReceiptCard
+                    receipt={msg.receipt.data}
+                    participants={msg.receipt.participants}
+                    connectedUsers={msg.receipt.participants.length}
+                    splitAmount={msg.receipt.data.total / msg.receipt.participants.length}
+                    isMessage={true}
+                    currentUserId={session.user.id}
+                    initiatorId={msg.userId}
+                    onJoin={async () => {
+                      try {
+                        await fetch('/api/pusher/message', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            type: EVENTS.SPLIT_JOIN,
+                            userId: session.user.id,
+                            messageTimestamp: msg.timestamp
+                          }),
+                        })
+                      } catch (error) {
+                        console.error('Error joining split:', error)
+                      }
+                    }}
+                    onPay={async () => {
+                      try {
+                        await fetch('/api/pusher/message', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            type: EVENTS.SPLIT_PAY,
+                            userId: session.user.id,
+                            messageTimestamp: msg.timestamp
+                          }),
+                        })
+                      } catch (error) {
+                        console.error('Error paying split:', error)
+                      }
+                    }}
+                  />
+                ) : (
+                  <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>
+                )}
                 <span className="text-xs opacity-75 mt-1 block">
                   {new Date(msg.timestamp).toLocaleTimeString()}
                 </span>
@@ -352,6 +454,8 @@ export default function Chat() {
       <ScanModal
         isOpen={isScanModalOpen}
         onClose={() => setIsScanModalOpen(false)}
+        connectedUsers={connectedUsers}
+        participants={members}
         onScanComplete={async () => {
           try {
             // If only 1 user (myself), just show receipt without split
@@ -360,23 +464,33 @@ export default function Chat() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                  message: `📋 Receipt total: RM 60.55\n💡 No other users to split with`,
-                  username
+                  message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💡 No other users to split with`,
+                  username,
+                  receipt: {
+                    data: MOCK_RECEIPT,
+                    participants: [{
+                      userId: session.user.id,
+                      username,
+                      verification: session.user.verification_level as 'orb' | 'phone',
+                      hasPaid: false
+                    }]
+                  }
                 }),
               })
               return
             }
 
-            // Calculate split amount based on total users in chat
-            const totalAmount = 60.55
-            const splitAmount = (totalAmount / connectedUsers).toFixed(2) // Split by total users
-            
+            // Send receipt with all participants
             await fetch('/api/pusher/message', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                message: `📋 Receipt total: RM ${totalAmount}\n\n💰 Split amount: RM ${splitAmount} each (${connectedUsers} people)\n\n/split ${connectedUsers}`,
-                username
+                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${connectedUsers} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / connectedUsers).toFixed(2)} each`,
+                username,
+                receipt: {
+                  data: MOCK_RECEIPT,
+                  participants: members
+                }
               }),
             })
           } catch (error) {
