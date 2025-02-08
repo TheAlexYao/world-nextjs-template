@@ -478,9 +478,9 @@ export default function Chat() {
             const allParticipants = Object.entries(presenceMembers?.members || {})
               .map(([id, member]: [string, any]) => ({
                 userId: id,
-                username: id === session?.user?.id ? username : (usernames[id] || 'Unknown'),
+                username: id === session?.user?.id ? username : (usernames[id] || member.info.username || 'Unknown'),
                 verification: member.info.verification_level,
-                hasPaid: false // No one starts as paid
+                hasPaid: false
               }))
 
             console.log('Participants being sent:', {
@@ -493,7 +493,7 @@ export default function Chat() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${connectedUsers} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / connectedUsers).toFixed(2)} each`,
+                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${allParticipants.length} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / allParticipants.length).toFixed(2)} each`,
                 username,
                 receipt: {
                   data: MOCK_RECEIPT,

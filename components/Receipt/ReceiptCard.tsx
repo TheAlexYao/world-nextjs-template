@@ -89,7 +89,7 @@ export default function ReceiptCard({
           {/* Participants */}
           <div className="space-y-2">
             {participants.map((p, i) => {
-              const isPaid = p.userId === initiatorId || p.hasPaid
+              const isPaid = p.hasPaid
               return (
                 <div key={i} className="flex items-center justify-between text-[15px]">
                   <div className="flex items-center gap-1">
@@ -158,7 +158,7 @@ export default function ReceiptCard({
           onPay?.()
           setShowPaymentModal(false)
         }}
-        amount={splitAmount || 0}
+        amount={receipt.total / participants.length}
         currency={receipt.currency}
       />
     </>
