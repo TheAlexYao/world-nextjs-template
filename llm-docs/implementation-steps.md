@@ -29,15 +29,39 @@ When using ngrok for development, remember to:
    ```
 3. Restart the Next.js development server
 
+### 2:30 PM - Multi-User Testing Phase
+Testing real-time functionality with multiple users:
+1. Presence Channel
+   - [x] User authentication working
+   - [x] Channel subscription successful
+   - [x] User count updates correctly
+   - [x] Testing with multiple World ID logins
+   - [x] Verify user join/leave events
+   
+2. Chat Functionality
+   - [x] Message broadcasting between users
+   - [x] Username display for different users
+   - [x] Verification level indicators (⦿ for Orb, ☎ for phone)
+   - [x] Message ordering and timestamps
+
+### 2:45 PM - Multi-User Test Results
+- Successfully tested presence channel with multiple users
+- Confirmed member add/remove events working:
+  ```js
+  // Member added event received with:
+  - User ID: 0x1582...808e0
+  - Verification: orb
+  ```
+- User count updates correctly (2 users seen)
+- Clean member removal on disconnect
+
 ### Next Actions
-1. Test the authentication flow:
-   - Sign in with World ID
-   - Complete verification
-   - Access chat room
-2. Test real-time chat functionality:
-   - Open multiple browser windows
-   - Send messages between them
-   - Verify Pusher connection
+1. Complete multi-user testing:
+   - Test with 3+ concurrent users
+   - Verify message delivery order
+   - Check username persistence
+2. Move on to receipt scan implementation
+3. Set up payment channels
 
 # Progress Tracking
 
@@ -95,19 +119,26 @@ When using ngrok for development, remember to:
    - [x] Reconnection handling for name changes
 
 ## In Progress 🚧
-8. **Receipt Scan Flow**
+8. **Multi-User Testing**
+   - [x] Fixed Pusher auth issues
+   - [x] Implemented proper presence channel auth
+   - [x] Added better error handling
+   - [x] Complete concurrent user testing
+   - [x] Verify all real-time features
+
+9. **Receipt Scan Flow**
    - [ ] Camera button UI
    - [ ] Receipt scanning animation
    - [ ] Static receipt display
    - [ ] Split calculation based on user count
 
-9. **Payment Flow**
-   - [ ] Implement payment UI
-   - [ ] Add confirmation buttons
-   - [ ] Handle .1 WLD transactions
-   - [ ] Payment status updates
+10. **Payment Flow**
+    - [ ] Implement payment UI
+    - [ ] Add confirmation buttons
+    - [ ] Handle .1 WLD transactions
+    - [ ] Payment status updates
 
-10. **Travel Fund Module**
+11. **Travel Fund Module**
     - [ ] AI prompt after payment
     - [ ] Fund progress tracking
     - [ ] Success animations
