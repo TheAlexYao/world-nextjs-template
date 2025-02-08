@@ -50,15 +50,26 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Pusher setup effect
   useEffect(() => {
-    if (!session?.user?.id) {
-      console.log('No session, skipping Pusher setup')
+    if (!session?.user?.id || !username) {
+      console.log('Missing required data, skipping Pusher setup:', {
+        hasSession: !!session?.user?.id,
+        username
+      })
       return
     }
     
     // Store session ID for Pusher auth
-    console.log('Setting up Pusher with user:', session.user.id)
+    console.log('Setting up Pusher with:', {
+      userId: session.user.id,
+      username,
+      verificationLevel: session.user.verification_level
+    })
     sessionStorage.setItem('user_id', session.user.id)
+
+    // Force reconnect with current auth state
+    pusherClient.disconnect()
 
     // Subscribe to both chat and presence channels
     const chatChannel = pusherClient.subscribe(CHANNELS.CHAT)
@@ -76,21 +87,28 @@ export default function Chat() {
       })
       setUsernames(prev => ({...prev, ...userMap}))
     })
+    
+    presenceChannel.bind('pusher:subscription_error', (error: any) => {
+      console.error('❌ Presence subscription error:', {
+        error,
+        session: {
+          id: session?.user?.id,
+          verification_level: session?.user?.verification_level
+        },
+        username,
+        channel: presenceChannel.name
+      })
+    })
+
     presenceChannel.bind('pusher:member_added', (member: any) => {
       console.log('Member added:', member)
       setConnectedUsers(prev => prev + 1)
       setUsernames(prev => ({...prev, [member.id]: member.info.username}))
     })
+
     presenceChannel.bind('pusher:member_removed', (member: any) => {
       console.log('Member removed:', member)
       setConnectedUsers(prev => Math.max(1, prev - 1))
-    })
-    presenceChannel.bind('pusher:subscription_error', (error: any) => {
-      console.error('❌ Presence subscription error:', {
-        error,
-        session: session?.user,
-        username
-      })
     })
 
     // Handle chat messages
@@ -98,14 +116,18 @@ export default function Chat() {
       setMessages((prev) => [...prev, data])
     })
 
+    // Connect after binding
+    pusherClient.connect()
+
     // Cleanup on unmount
     return () => {
       chatChannel.unbind_all()
       presenceChannel.unbind_all()
       pusherClient.unsubscribe(CHANNELS.CHAT)
       pusherClient.unsubscribe(CHANNELS.PRESENCE)
+      pusherClient.disconnect()
     }
-  }, [session, username])
+  }, [session?.user?.id, username])
 
   useEffect(() => {
     // iOS keyboard handling

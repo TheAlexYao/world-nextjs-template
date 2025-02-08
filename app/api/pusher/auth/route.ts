@@ -13,12 +13,17 @@ export async function POST(req: Request) {
     console.log('👤 Session:', { 
       exists: !!session,
       userId: session?.user?.id,
-      verificationLevel: session?.user?.verification_level
+      verificationLevel: session?.user?.verification_level,
+      headers: Object.fromEntries(req.headers)
     })
 
     if (!session?.user?.id) {
       console.error('❌ No session or user ID')
-      return NextResponse.json({ error: 'Unauthorized', details: 'No valid session found' }, { status: 401 })
+      return NextResponse.json({ 
+        error: 'Unauthorized', 
+        details: 'No valid session found',
+        session 
+      }, { status: 401 })
     }
 
     // Parse request body
@@ -62,7 +67,8 @@ export async function POST(req: Request) {
       console.error('❌ Pusher authorize failed:', e)
       return NextResponse.json({ 
         error: 'Pusher authorization failed',
-        details: e instanceof Error ? e.message : 'Unknown error'
+        details: e instanceof Error ? e.message : 'Unknown error',
+        presenceData
       }, { status: 500 })
     }
   } catch (error) {
