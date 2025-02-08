@@ -37,8 +37,10 @@ export default function ReceiptCard({
   // Get current user's status
   const currentParticipant = currentUserId ? participants.find(p => p.userId === currentUserId) : null
   const isInitiator = currentUserId === initiatorId
-  const hasJoined = currentParticipant?.hasPaid !== undefined
-  const hasPaid = currentParticipant?.hasPaid
+  
+  // If you're the initiator, you're automatically joined and paid
+  const hasJoined = isInitiator || currentParticipant?.hasPaid !== undefined
+  const hasPaid = isInitiator || currentParticipant?.hasPaid
 
   return (
     <>
@@ -124,6 +126,13 @@ export default function ReceiptCard({
           >
             {!hasJoined ? 'Join Split' : !hasPaid ? 'Pay 0.1 WLD' : 'Paid ✓'}
           </button>
+        )}
+
+        {/* Show paid status for initiator */}
+        {isMessage && isInitiator && (
+          <div className="text-center text-green-500 font-medium mt-4">
+            Paid ✓
+          </div>
         )}
 
         {/* Close Button (only in modal view) */}
