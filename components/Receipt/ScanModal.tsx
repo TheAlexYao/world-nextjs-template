@@ -34,6 +34,7 @@ type Props = {
     verification: 'orb' | 'phone'
     hasPaid: boolean
   }>
+  username: string
 }
 
 export default function ScanModal({ 
@@ -41,7 +42,8 @@ export default function ScanModal({
   onClose,
   onScanComplete,
   connectedUsers,
-  participants
+  participants,
+  username
 }: Props) {
   const [scanning, setScanning] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
@@ -68,7 +70,7 @@ export default function ScanModal({
         try {
           const initiator = {
             userId: session?.user?.id || '',
-            username: localStorage.getItem(`username_${session?.user?.id}`) || 'Unknown',
+            username,
             verification: session?.user?.verification_level || 'phone',
             hasPaid: false
           }
@@ -110,7 +112,7 @@ export default function ScanModal({
       
       return () => clearTimeout(timer)
     }
-  }, [isOpen, onScanComplete, session, connectedUsers, participants])
+  }, [isOpen, onScanComplete, session, connectedUsers, participants, username])
 
   return (
     <AnimatePresence>

@@ -456,6 +456,7 @@ export default function Chat() {
         onClose={() => setIsScanModalOpen(false)}
         connectedUsers={connectedUsers}
         participants={members}
+        username={username}
         onScanComplete={async () => {
           try {
             // If only 1 user (myself), just show receipt without split
