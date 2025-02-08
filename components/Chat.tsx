@@ -467,40 +467,26 @@ export default function Chat() {
         username={username}
         onScanComplete={async () => {
           try {
-            // For single participant, only include initiator
-            const participants = connectedUsers === 1 ? [{
-              userId: session?.user?.id || '',
-              username: username,
-              verification: session?.user?.verification_level || 'phone',
-              hasPaid: true
-            }] : [
-              // Multiple participants - include initiator and others
-              {
-                userId: session?.user?.id || '',
-                username: username,
-                verification: session?.user?.verification_level || 'phone',
-                hasPaid: true
-              },
-              ...members
-                .filter(member => member.userId !== session?.user?.id)
-                .map(member => ({
-                  userId: member.userId,
-                  username: usernames[member.userId] || member.username,
-                  verification: member.verification,
-                  hasPaid: false
-                }))
-            ]
+            // Get all current members from presence channel
+            const currentMembers = presenceChannelRef.current ? 
+              Array.from((presenceChannelRef.current.members as any).members as Map<string, PresenceMember>)
+                .map(([id, member]) => ({
+                  userId: id,
+                  username: usernames[id] || 'Unknown',
+                  verification: member.info.verification_level,
+                  hasPaid: id === session?.user?.id // Initiator is paid
+                })) : []
 
             // Send receipt with participants
             await fetch('/api/pusher/message', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${participants.length} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / participants.length).toFixed(2)} each`,
+                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${currentMembers.length} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / currentMembers.length).toFixed(2)} each`,
                 username,
                 receipt: {
                   data: MOCK_RECEIPT,
-                  participants
+                  participants: currentMembers
                 }
               }),
             })
