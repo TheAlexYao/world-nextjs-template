@@ -281,7 +281,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overscroll-none touch-manipulation" style={{ touchAction: 'none' }}>
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 overscroll-none touch-manipulation" style={{ touchAction: 'none' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 select-none">
         {/* Left side: Title and user count */}
@@ -467,33 +467,40 @@ export default function Chat() {
         username={username}
         onScanComplete={async () => {
           try {
-            const initiator = {
+            // For single participant, only include initiator
+            const participants = connectedUsers === 1 ? [{
               userId: session?.user?.id || '',
               username: username,
               verification: session?.user?.verification_level || 'phone',
-              hasPaid: true  // Initiator is marked as paid
-            }
+              hasPaid: true
+            }] : [
+              // Multiple participants - include initiator and others
+              {
+                userId: session?.user?.id || '',
+                username: username,
+                verification: session?.user?.verification_level || 'phone',
+                hasPaid: true
+              },
+              ...members
+                .filter(member => member.userId !== session?.user?.id)
+                .map(member => ({
+                  userId: member.userId,
+                  username: usernames[member.userId] || member.username,
+                  verification: member.verification,
+                  hasPaid: false
+                }))
+            ]
 
-            // Get all current members except initiator and mark them as not paid
-            const otherParticipants = members
-              .filter(member => member.userId !== initiator.userId)
-              .map(member => ({
-                userId: member.userId,
-                username: usernames[member.userId] || member.username,
-                verification: member.verification,
-                hasPaid: false
-              }))
-
-            // Send receipt with all participants
+            // Send receipt with participants
             await fetch('/api/pusher/message', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${connectedUsers} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / connectedUsers).toFixed(2)} each`,
+                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${participants.length} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / participants.length).toFixed(2)} each`,
                 username,
                 receipt: {
                   data: MOCK_RECEIPT,
-                  participants: [initiator, ...otherParticipants]  // Include everyone
+                  participants
                 }
               }),
             })
