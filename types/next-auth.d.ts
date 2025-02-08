@@ -7,6 +7,8 @@ declare module 'next-auth' {
       id: string
       /** World ID verification level (orb/phone) */
       verification_level: string
+      /** World username or truncated ID */
+      username: string
     }
   }
   
@@ -15,5 +17,7 @@ declare module 'next-auth' {
     id: string
     /** World ID verification level (orb/phone) */
     verification_level: string
+    /** World username or truncated ID */
+    username: string
   }
 } 

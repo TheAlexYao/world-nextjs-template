@@ -9,6 +9,7 @@ type Message = {
   userId: string
   timestamp: string
   verification_level: string
+  username: string
 }
 
 export default function Chat() {
@@ -95,7 +96,7 @@ export default function Chat() {
               >
                 {!isCurrentUser && (
                   <p className="text-xs font-medium mb-1">
-                    World ID: {msg.userId.slice(-4)} ({msg.verification_level})
+                    {msg.username} ({msg.verification_level})
                   </p>
                 )}
                 <p className="break-words text-[15px] leading-[1.3]">{msg.message}</p>

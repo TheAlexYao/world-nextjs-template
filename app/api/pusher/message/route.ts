@@ -13,13 +13,14 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { message } = body
+    const { message, username } = body
 
     // Trigger the message event on the chat channel
     await pusher.trigger(CHANNELS.CHAT, EVENTS.MESSAGE, {
       message,
       userId: session.user.id,
       verification_level: session.user.verification_level,
+      username,
       timestamp: new Date().toISOString(),
     })
 
