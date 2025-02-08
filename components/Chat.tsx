@@ -169,11 +169,7 @@ export default function Chat() {
 
           // Always update the participant list
           const updatedParticipants = existingParticipant
-            ? msg.receipt.participants.map(p => 
-                p.userId === data.userId 
-                  ? { ...p, hasPaid: false }
-                  : p
-              )
+            ? msg.receipt.participants // Don't modify if already exists
             : [
                 ...msg.receipt.participants,
                 {
@@ -198,6 +194,13 @@ export default function Chat() {
 
     // Handle split payments
     chatChannel.bind(EVENTS.SPLIT_PAY, (data: { userId: string, messageTimestamp: string }) => {
+      console.log('Split pay event:', {
+        data,
+        currentMessages: messages,
+        usernames,
+        session: session?.user
+      })
+      
       setMessages(prev => prev.map(msg => {
         if (msg.timestamp === data.messageTimestamp && msg.receipt) {
           return {
