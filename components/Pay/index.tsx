@@ -18,17 +18,13 @@ const sendPayment = async () => {
 
     const payload: PayCommandInput = {
       reference: id,
-      to: "0x0c892815f0B058E69987920A23FBb33c834289cf", // Test address
+      to: "0x097d029bdd8bd34b02bf47c601e79da294a62706", // Your test wallet address
       tokens: [
         {
           symbol: Tokens.WLD,
-          token_amount: tokenToDecimals(0.5, Tokens.WLD).toString(),
-        },
-        {
-          symbol: Tokens.USDCE,
-          token_amount: tokenToDecimals(0.1, Tokens.USDCE).toString(),
-        },
-      ],
+          token_amount: tokenToDecimals(0.1, Tokens.WLD).toString(),
+        }
+      ], // Removed USDC, keeping only WLD
       description: "Watch this is a test",
     };
     if (MiniKit.isInstalled()) {
