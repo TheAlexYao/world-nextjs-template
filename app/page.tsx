@@ -32,8 +32,10 @@ export default async function Home() {
             Split Bills, Share Moments 💫
           </h1>
           
-          <p className="text-lg text-gray-600 dark:text-gray-300 text-center mb-8 max-w-2xl mx-auto">
-            Life is too short to keep your dreams stuck in a group chat. Instantly split bills, plan trips, and watch your savings grow together. No more chasing payments—just more time for making moments.
+          <p className="text-lg text-gray-600 dark:text-gray-300 text-center mb-8 max-w-2xl mx-auto leading-relaxed md:leading-loose md:text-xl px-4">
+            Life is too short to keep your dreams stuck in a group chat.
+            Instantly split bills, plan trips, and watch your savings grow together.
+            No more chasing payments—just more time for making moments.
           </p>
 
           {/* Auth Card */}
