@@ -354,6 +354,37 @@ export default function Chat() {
       <ScanModal
         isOpen={isScanModalOpen}
         onClose={() => setIsScanModalOpen(false)}
+        onScanComplete={async () => {
+          try {
+            // If only 1 user (myself), just show receipt without split
+            if (connectedUsers <= 1) {
+              await fetch('/api/pusher/message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  message: `📋 Receipt total: RM 60.55\n💡 No other users to split with`,
+                  username
+                }),
+              })
+              return
+            }
+
+            // Calculate split amount based on total users in chat
+            const totalAmount = 60.55
+            const splitAmount = (totalAmount / connectedUsers).toFixed(2) // Split by total users
+            
+            await fetch('/api/pusher/message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                message: `📋 Receipt total: RM ${totalAmount}\n💰 Split amount: RM ${splitAmount} each (${connectedUsers} people)\n/split ${connectedUsers} # Demo: split total RM ${totalAmount} between ${connectedUsers} users`,
+                username
+              }),
+            })
+          } catch (error) {
+            console.error('Error sending split command:', error)
+          }
+        }}
       />
     </div>
   )

@@ -3,40 +3,43 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
+
+type Props = {
+  isOpen: boolean
+  onClose: () => void
+  onScanComplete: () => void
+}
 
 export default function ScanModal({ 
   isOpen,
-  onClose
-}: { 
-  isOpen: boolean
-  onClose: () => void
-}) {
+  onClose,
+  onScanComplete
+}: Props) {
   const [scanning, setScanning] = useState(false)
-  const [showReceipt, setShowReceipt] = useState(false)
   
-  // Reset states when modal closes
+  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setScanning(false)
-      setShowReceipt(false)
     }
   }, [isOpen])
 
   // Start scanning animation when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Start scanning immediately
       setScanning(true)
       
-      // After 2s, show receipt
+      // After 2s, complete scan
       const timer = setTimeout(() => {
         setScanning(false)
-        setShowReceipt(true)
+        onScanComplete()
+        onClose()
       }, 2000)
       
       return () => clearTimeout(timer)
     }
-  }, [isOpen])
+  }, [isOpen, onScanComplete, onClose])
 
   return (
     <AnimatePresence>
@@ -50,7 +53,7 @@ export default function ScanModal({
           {/* Header */}
           <div className="p-4 flex justify-between items-center">
             <h2 className="text-white font-medium">
-              {scanning ? 'Scanning Receipt' : showReceipt ? 'Receipt Details' : 'Position Receipt'}
+              {scanning ? 'Scanning Receipt' : 'Position Receipt'}
             </h2>
             <button 
               onClick={onClose}
@@ -64,6 +67,14 @@ export default function ScanModal({
           <div className="flex-1 flex flex-col items-center justify-center px-8 pb-20">
             {/* Scanning frame */}
             <div className="w-full max-w-sm aspect-[3/4] rounded-lg border-2 border-[#00A7B7] relative overflow-hidden">
+              {/* Duck receipt image */}
+              <Image
+                src="/images/duckreceipt.JPG"
+                alt="Receipt"
+                fill
+                className="object-cover"
+              />
+              
               {scanning && (
                 <motion.div
                   initial={{ y: '-100%' }}
@@ -80,49 +91,11 @@ export default function ScanModal({
                   }}
                 />
               )}
-              
-              {showReceipt && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-white p-4"
-                >
-                  <h3 className="text-center font-medium">YUMMY ROAST ENTERPRISE</h3>
-                  <div className="mt-4 space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Duck(1/4Lower)</span>
-                      <span>RM 21.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Canto Style Hor Fun</span>
-                      <span>RM 11.90</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Wantan Noodle(D)</span>
-                      <span>RM 8.90</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Soup Of The Day</span>
-                      <span>RM 11.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Plain Water</span>
-                      <span>RM 1.60</span>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-2 border-t">
-                    <div className="flex justify-between font-medium">
-                      <span>Total</span>
-                      <span>RM 60.55</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
             </div>
 
             {/* Status text */}
             <p className="text-white/90 mt-6 text-center">
-              {scanning ? 'Scanning receipt...' : showReceipt ? 'Receipt scanned!' : 'Position receipt in frame'}
+              {scanning ? 'Scanning receipt...' : 'Position receipt in frame'}
             </p>
           </div>
         </motion.div>
