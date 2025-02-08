@@ -67,16 +67,16 @@ export default function ScanModal({
               {scanning && (
                 <motion.div
                   initial={{ y: '-100%' }}
-                  animate={{ y: '100%' }}
+                  animate={{ y: '200%' }}
                   transition={{
-                    duration: 1,
+                    duration: 2,
                     ease: 'linear',
                     repeat: Infinity,
                     repeatType: 'loop'
                   }}
-                  className="absolute inset-x-0 h-1 bg-[#00A7B7]"
+                  className="absolute inset-x-0 h-0.5 bg-[#00A7B7]"
                   style={{
-                    boxShadow: '0 0 12px #00A7B7'
+                    boxShadow: '0 0 8px #00A7B7, 0 0 12px #00A7B7'
                   }}
                 />
               )}
