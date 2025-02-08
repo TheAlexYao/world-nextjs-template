@@ -88,21 +88,24 @@ export default function ReceiptCard({
 
           {/* Participants */}
           <div className="space-y-2">
-            {participants.map((p, i) => (
-              <div key={i} className="flex items-center justify-between text-[15px]">
-                <div className="flex items-center gap-1">
-                  <span className="text-[var(--color-text)]">{p.username}</span>
-                  {p.verification === 'orb' ? (
-                    <span title="Orb Verified" className="text-[var(--color-primary)]">⦿</span>
-                  ) : (
-                    <span title="Phone Verified" className="text-[var(--color-primary)]">☎</span>
-                  )}
+            {participants.map((p, i) => {
+              const isPaid = p.userId === initiatorId || p.hasPaid
+              return (
+                <div key={i} className="flex items-center justify-between text-[15px]">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[var(--color-text)]">{p.username}</span>
+                    {p.verification === 'orb' ? (
+                      <span title="Orb Verified" className="text-[var(--color-primary)]">⦿</span>
+                    ) : (
+                      <span title="Phone Verified" className="text-[var(--color-primary)]">☎</span>
+                    )}
+                  </div>
+                  <span className={isPaid ? 'text-green-500' : 'text-[var(--color-text-secondary)]'}>
+                    {isPaid ? 'Paid ✓' : 'Pending...'}
+                  </span>
                 </div>
-                <span className={p.hasPaid ? 'text-green-500' : 'text-[var(--color-text-secondary)]'}>
-                  {p.hasPaid ? 'Paid ✓' : 'Pending...'}
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Fixed Payment Amount */}

@@ -467,26 +467,33 @@ export default function Chat() {
         username={username}
         onScanComplete={async () => {
           try {
-            // Get all current members from presence channel
-            const currentMembers = presenceChannelRef.current ? 
-              Array.from((presenceChannelRef.current.members as any).members as Map<string, PresenceMember>)
-                .map(([id, member]) => ({
-                  userId: id,
-                  username: usernames[id] || 'Unknown',
-                  verification: member.info.verification_level,
-                  hasPaid: id === session?.user?.id // Initiator is paid
-                })) : []
+            const initiator = {
+              userId: session?.user?.id || '',
+              username: username,
+              verification: session?.user?.verification_level || 'phone',
+              hasPaid: true
+            }
 
-            // Send receipt with participants
+            // Get all current members except initiator and mark them as not paid
+            const otherParticipants = members
+              .filter(member => member.userId !== initiator.userId)
+              .map(member => ({
+                userId: member.userId,
+                username: usernames[member.userId] || member.username,
+                verification: member.verification,
+                hasPaid: false
+              }))
+
+            // Send receipt with all participants
             await fetch('/api/pusher/message', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
-                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${currentMembers.length} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / currentMembers.length).toFixed(2)} each`,
+                message: `📋 Receipt total: ${MOCK_RECEIPT.currency} ${MOCK_RECEIPT.total}\n💰 Split ${connectedUsers} ways: ${MOCK_RECEIPT.currency} ${(MOCK_RECEIPT.total / connectedUsers).toFixed(2)} each`,
                 username,
                 receipt: {
                   data: MOCK_RECEIPT,
-                  participants: currentMembers
+                  participants: [initiator, ...otherParticipants]
                 }
               }),
             })
