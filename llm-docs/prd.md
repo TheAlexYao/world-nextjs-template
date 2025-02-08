@@ -2,14 +2,14 @@
 Ephemeral -- Group Chat with Automated Receipt Scan, Payment Split & AI Travel Fund
 
 **Overview:**  
-Starting from the [minikit-next-template](https://github.com/worldcoin/minikit-next-template), we'll build a World mini‑app that lets users join a real‑time group chat (via Socket.IO) where receipt scanning automatically splits a payment based on the number of active users. The initiator pays (with others confirming via a button) and funds are directed to the initiator's wallet. The app adheres to the World mini‑app webview spec for proper mobile display and is deployed both locally (via ngrok) and in production on Vercel.
+Starting from the [minikit-next-template](https://github.com/worldcoin/minikit-next-template), we'll build a World mini‑app that lets users join a real‑time group chat (via Pusher) where receipt scanning automatically splits a payment based on the number of active users. The initiator pays (with others confirming via a button) and funds are directed to the initiator's wallet. The app adheres to the World mini‑app webview spec for proper mobile display and is deployed both locally (via ngrok) and in production on Vercel.
 
 **Objectives:**  
 • Build on the template and integrate with a production World mini‑app instance.  
 • Implement real‑time chat that auto‑determines user count for splitting the receipt amount.  
 • Automate the receipt scan flow: display an animated scan, show a static receipt, auto‑calculate the "/pay {total} split {N}" command, and let non‑initiators confirm payment (.1 WLD each) to the initiator.  
 • Display an AI travel fund prompt after payment confirmation.  
-• Ensure local testing (using ngrok and proper NEXTAUTH_URL) and production deployment (with env vars for APP_ID, DEV_PORTAL_API_KEY, WLD_CLIENT_ID, WLD_CLIENT_SECRET, and NEXTAUTH_URL).
+• Ensure local testing (using ngrok and proper NEXTAUTH_URL) and production deployment (with env vars for APP_ID, DEV_PORTAL_API_KEY, WLD_CLIENT_ID, WLD_CLIENT_SECRET, NEXTAUTH_URL, and Pusher credentials).
 
 **Key Features & User Stories:**
 
@@ -21,11 +21,15 @@ Starting from the [minikit-next-template](https://github.com/worldcoin/minikit-n
 `DEV_PORTAL_API_KEY="APIKEY"`,  
 `WLD_CLIENT_ID=...`,  
 `WLD_CLIENT_SECRET=...`,  
-`NEXTAUTH_URL` set to the Vercel URL.
+`NEXTAUTH_URL` set to the Vercel URL,  
+`PUSHER_APP_ID=...`,  
+`PUSHER_KEY=...`,  
+`PUSHER_SECRET=...`,  
+`PUSHER_CLUSTER=...`
 
 2. **Real‑Time Group Chat:**  
 -- Users join a group chat via a deep‑link (formatted as per World mini‑app webview spec).  
--- Socket.IO ensures persistent, low‑latency messaging.
+-- Pusher ensures persistent, low‑latency messaging in a serverless environment.
 
 3. **Receipt Scan & Automated Payment Split:**  
 -- The "Scan Receipt" button triggers an animation then displays a static receipt (e.g. RM188.50 total ≈ $40 USD).  
@@ -41,13 +45,13 @@ Starting from the [minikit-next-template](https://github.com/worldcoin/minikit-n
 - Start with [minikit-next-template].  
 - Confirm NextAuth + World wallet auth are operational.  
 • **Real‑Time Chat:**  
-- Integrate Socket.IO in an API route (e.g. `/api/socket.js`) to manage live messaging.  
-- Update the chat component to use the persistent connection.  
+- Integrate Pusher in an API route (e.g. `/api/pusher-trigger`) to manage live messaging.  
+- Update the chat component to use Pusher for real-time updates.  
 • **Deep‑Linking & Webview Compliance:**  
 - Generate deep‑links using `https://worldcoin.org/mini-app?app_id={APP_ID}&path=/chat` so the app renders properly in the World app's mobile webview.  
 • **Receipt & Payment Flow:**  
 - "Scan Receipt" triggers an animated sequence, then shows a static receipt.  
-- Determine connected user count via Socket.IO and auto‑calculate each share.  
+- Determine connected user count via Pusher presence channels and auto‑calculate each share.  
 - Auto‑populate the split command string ("/pay 188.50 split {N}").  
 - Non‑initiators confirm payment with a button; payments processed via API routes (.1 WLD each, sent to the initiator).  
 • **Local Dev Setup:**  
@@ -59,7 +63,7 @@ Starting from the [minikit-next-template](https://github.com/worldcoin/minikit-n
 **Tech Stack:**  
 • **Package Manager:** pnpm for fast, disk-efficient package management  
 • **Frontend:** Next.js (App Router), React, Tailwind CSS  
-• **Real‑Time:** Socket.IO (server and client)  
+• **Real‑Time:** Pusher (server and client)  
 • **Auth:** NextAuth with World wallet integration  
 • **Payments:** API endpoints processing minimal (.1 WLD) transactions  
 • **Deeplinking & UI:** World mini‑app webview spec compliance
@@ -70,9 +74,9 @@ Starting from the [minikit-next-template](https://github.com/worldcoin/minikit-n
 - Clone and set up the [minikit-next-template].  
 - Update local env vars and set `NEXTAUTH_URL` to your ngrok URL for local testing.  
 - Verify login works via World wallet auth.
-2. **Integrate Socket.IO:**  
-- Create `/api/socket.js` to initialize Socket.IO on your Next.js server.  
-- Update your chat component to connect and manage real‑time messages.
+2. **Integrate Pusher:**  
+- Create `/api/pusher-trigger` to handle real-time message broadcasting.  
+- Update your chat component to subscribe to Pusher channels.
 3. **Implement Deep‑Linking & Webview Compliance:**  
 - Generate a deep‑link URL in the format required by World.  
 - Test UI appearance in mobile webview.
@@ -92,12 +96,12 @@ Starting from the [minikit-next-template](https://github.com/worldcoin/minikit-n
 - Once validated, deploy to Vercel and verify production deep‑linking and UI in World app webview.
 
 **Success Metrics:**  
-• Chat latency under 200ms via Socket.IO.  
+• Chat latency under 200ms via Pusher.  
 • Accurate dynamic split calculation based on live user count.  
 • Successful processing of all .1 WLD transactions, with non‑initiators confirming payment correctly.  
 • UI consistency in both local (ngrok) and production (Vercel) environments as per the World webview spec.
 
 **Risks & Mitigations:**  
-• **Real‑Time Performance:** Socket.IO minimizes latency; ensure proper error handling.  
+• **Real‑Time Performance:** Pusher ensures low latency and serverless compatibility; ensure proper error handling.  
 • **UI in Mobile Webview:** Validate design thoroughly with ngrok and real device testing.  
 • **Payment Flow Robustness:** Although no network fallback is needed, basic error logging should be in place.

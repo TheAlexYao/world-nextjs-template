@@ -8,7 +8,7 @@ Below is a comprehensive 100‑step implementation plan--from starting with the 
 - Confirmed project is using pnpm as package manager
 - Updated package.json:
   - Renamed project to "ephemeral"
-  - Added dependencies: socket.io, socket.io-client, lottie-react, confetti-js
+  - Added dependencies: pusher, pusher-js, lottie-react, confetti-js
 - Successfully ran `pnpm install` to install all dependencies
 - Started development server with `pnpm dev`
 - Initiated ngrok for public URL access
@@ -37,7 +37,74 @@ When using ngrok for development, remember to:
 2. Test real-time chat functionality:
    - Open multiple browser windows
    - Send messages between them
-   - Verify Socket.IO connection
+   - Verify Pusher connection
+
+# Progress Tracking
+
+## Completed Steps ✅
+1. **Project Initialization & Base Setup**
+   - [x] Created project folder
+   - [x] Cloned minikit template
+   - [x] Installed dependencies
+   - [x] Set up initial environment variables
+   - [x] Verified dev server starts
+
+2. **Local Development Environment**
+   - [x] Set up ngrok for local testing
+   - [x] Updated NEXTAUTH_URL with ngrok URL
+   - [x] Configured World dev console with ngrok callback
+
+3. **Real-time Infrastructure**
+   - [x] Switched from Socket.IO to Pusher
+   - [x] Added Pusher dependencies
+   - [x] Updated documentation for Pusher integration
+   - [x] Created Pusher accounts (dev & prod)
+   - [x] Obtained all necessary Pusher credentials
+   - [x] Configured Pusher app settings:
+     - [x] Enabled Force TLS
+     - [x] Enabled Client Events
+     - [x] Enabled Subscription Counting
+     - [x] Enabled Subscription Count Events
+
+4. **Environment Configuration**
+   - [x] Set up development .env file with Pusher credentials
+   - [x] Created production .env file
+   - [x] Updated .env.example with new variables
+   - [x] Added client-side Pusher variables
+
+5. **Payment Infrastructure**
+   - [x] Implemented Pay component for payment UI
+   - [x] Created /api/initiate-payment endpoint
+   - [x] Created /api/confirm-payment endpoint
+   - [x] Integrated payment flow with World ID verification
+   - [x] Tested payment endpoints
+
+## In Progress 🚧
+6. **Pusher Integration**
+   - [ ] Implement server-side trigger endpoint
+   - [ ] Build client-side chat component
+   - [ ] Test real-time messaging
+   - [ ] Implement subscription count handling for split payments
+
+## Next Steps ⏳
+7. **Deep Linking & Webview**
+8. **Receipt Scan Flow**
+9. **Travel Fund Module**
+10. **Testing & Deployment**
+
+## Technical Debt 🔧
+- Need to implement proper error handling for Pusher events
+- Consider adding retry logic for failed message delivery
+- Add environment variable validation
+- Update NEXTAUTH_URL in production env when Vercel URL is available
+- Consider enabling authorized connections if stricter security is needed
+- Add error handling for subscription count changes
+
+## Next Up 📋
+1. Create server-side Pusher trigger endpoint with subscription counting
+2. Implement chat component with Pusher integration
+3. Test real-time messaging with multiple clients
+4. Implement subscription count listener for dynamic split updates
 
 * * *
 
@@ -73,117 +140,169 @@ When using ngrok for development, remember to:
 20. Test login via the ngrok URL in your browser.  
 21. Log into the World dev console and register the ngrok URL so "Login with World" works locally.
 
-4. **Integrate Real‑Time Chat (Socket.IO -- Server):**  
-22. Create a new file at `pages/api/socket.js`.  
-23. In `pages/api/socket.js`, import Socket.IO's Server:  
-`import { Server } from "socket.io";`  
-24. Define a handler function that checks if `res.socket.server.io` exists.  
-25. If not, create a new instance of Socket.IO using:  
-`const io = new Server(res.socket.server);`  
-26. Attach an event listener for "connection":  
-`io.on("connection", (socket) => { … });`  
-27. Within the connection event, log that a client has connected.  
-28. Inside the connection event, add a listener for "message" events.  
-29. In the "message" handler, broadcast the message to all clients using:  
-`io.emit("message", msg);`  
-30. Save the file.  
-31. Test by visiting the API route URL (even if it returns an empty response) to trigger initialization.
+4. **Set Up Pusher Account & Credentials:**  
+22. Sign up for a Pusher account at [pusher.com](https://pusher.com).  
+23. Create a new Channels app in your Pusher dashboard.  
+24. Note your Pusher credentials: appId, key, secret, and cluster.  
+25. Add to your `.env` file:  
+```
+PUSHER_APP_ID=your_app_id
+PUSHER_KEY=your_key
+PUSHER_SECRET=your_secret
+PUSHER_CLUSTER=your_cluster
+```
+26. Install Pusher server SDK:  
+`pnpm add pusher`  
+27. Install Pusher client SDK:  
+`pnpm add pusher-js`  
+28. Verify that both packages install successfully.  
+29. Review Pusher docs for event triggers and client subscription.  
+30. Ensure your environment variables load correctly in development.
 
-5. **Integrate Real‑Time Chat (Socket.IO -- Client):**  
-32. Open or create a chat component file (e.g. `components/Chat.jsx`).  
-33. Import `io` from "socket.io-client":  
-`import io from "socket.io-client";`  
-34. In the component, declare a state variable for messages using `useState([])`.  
-35. Also, declare a state variable for the input message text.  
-36. In a `useEffect`, initialize the socket connection:  
-`const socket = io();`  
-37. Set up a "connect" event listener on the socket to log connection success.  
-38. Set up a "message" event listener to update your messages state.  
-39. Clean up the socket connection on component unmount.  
-40. Render the chat messages list and an input field with a "Send" button.  
-41. Implement a `sendMessage` function that emits the "message" event with the current input value.  
-42. Test the chat component by opening it in the browser; open multiple tabs to simulate multiple users.
+5. **Integrate Real‑Time Chat (Pusher -- Server):**  
+31. Create a new file at `pages/api/pusher-trigger.js`.  
+32. Import Pusher:  
+`import Pusher from "pusher";`  
+33. Initialize Pusher with your credentials:  
+```js
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true,
+});
+```
+34. Export a handler function to handle POST requests.  
+35. In the handler, read the message payload from the request body.  
+36. Use `pusher.trigger("chat-channel", "message", { msg: payload })` to broadcast.  
+37. Return a JSON response confirming success.  
+38. Save the file.  
+39. Test the API route using Postman or curl with a sample payload.  
+40. Confirm that the Pusher dashboard shows events being triggered.
 
-6. **Implement Deep‑Linking & Webview Compliance:**  
-43. Create a utility function (e.g. `utils/generateDeepLink.js`) that constructs a deep‑link URL:  
+6. **Integrate Real‑Time Chat (Pusher -- Client):**  
+41. Create a chat component file (e.g. `components/Chat.jsx`).  
+42. Import React hooks and PusherJS:  
+```js
+import { useState, useEffect } from "react";
+import Pusher from "pusher-js";
+```
+43. Declare a state variable for messages using `useState([])`.  
+44. Declare a state variable for the input message text.  
+45. In a `useEffect`, initialize Pusher on the client side:  
+```js
+const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+});
+```
+46. Subscribe to the "chat-channel":  
+`const channel = pusherClient.subscribe("chat-channel");`  
+47. Bind to the "message" event:  
+```js
+channel.bind("message", (data) => {
+  setMessages((prev) => [...prev, data.msg]);
+});
+```
+48. Clean up the subscription on component unmount.  
+49. Render the chat messages list and an input field with a "Send" button.  
+50. Implement a `sendMessage` function that calls your API route:  
+```js
+fetch("/api/pusher-trigger", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ msg: inputValue }),
+});
+```
+51. Clear the input after sending.  
+52. Test the chat component by opening multiple browser windows.
+
+7. **Implement Deep‑Linking & Webview Compliance:**  
+53. Create a utility function (e.g. `utils/generateDeepLink.js`) that constructs a deep‑link URL:  
 `https://worldcoin.org/mini-app?app_id={APP_ID}&path=/chat`  
-44. Replace `{APP_ID}` with your env variable (set later in production).  
-45. Call this function on the chat page to display a shareable link.  
-46. Verify that the deep‑link URL appears correctly.  
-47. Review World's mini‑app webview spec and adjust CSS/Tailwind settings to match.  
-48. Test the UI in various mobile simulators to ensure it meets the design spec.
+54. Replace `{APP_ID}` with your env variable (set later in production).  
+55. Call this function on the chat page to display a shareable link.  
+56. Verify that the deep‑link URL appears correctly.  
+57. Review World's mini‑app webview spec and adjust CSS/Tailwind settings to match.  
+58. Test the UI in various mobile simulators to ensure it meets the design spec.
 
-7. **Implement Receipt Scan Flow (UI & Animation):**  
-49. On the chat page, add a "Scan Receipt" button.  
-50. Create a new component (e.g. `components/ReceiptScan.jsx`) for the receipt scan flow.  
-51. Add an animated sequence using CSS animations or Lottie for a scanning effect.  
-52. Once the animation completes, display a static receipt with details (e.g. RM188.50 total, list of Malaysian dishes, service charge, tax).  
-53. Hardcode dummy receipt data for now.  
-54. Create a state variable to track when the scan is complete.  
-55. Wire up the "Scan Receipt" button to trigger the animation and then reveal the receipt. 56. Test the receipt scan animation locally.
+8. **Implement Receipt Scan Flow (UI & Animation):**  
+59. On the chat page, add a "Scan Receipt" button.  
+60. Create a new component (e.g. `components/ReceiptScan.jsx`) for the receipt scan flow.  
+61. Add an animated sequence using CSS animations or Lottie for a scanning effect.  
+62. Once the animation completes, display a static receipt with details (e.g. RM188.50 total, list of Malaysian dishes, service charge, tax).  
+63. Hardcode dummy receipt data for now.  
+64. Create a state variable to track when the scan is complete.  
+65. Wire up the "Scan Receipt" button to trigger the animation and then reveal the receipt. 66. Test the receipt scan animation locally.
 
-8. **Automate Payment Split Calculation:**  
-57. In your chat or receipt component, add logic to count connected users via the Socket.IO connection.  
-58. Create a function that retrieves the current user count (from the socket server's connections if possible).  
-59. Calculate the split amount:  
+9. **Automate Payment Split Calculation:**  
+67. In your chat or receipt component, add logic to count connected users via the Socket.IO connection.  
+68. Create a function that retrieves the current user count (from the socket server's connections if possible).  
+69. Calculate the split amount:  
 `splitAmount = totalReceipt / numberOfUsers`  
-60. Auto‑populate a message string (e.g. "/pay 188.50 split {N}") using this calculation.  
-61. Display the auto‑calculated split command on the UI.  
-62. Ensure that the calculation updates dynamically if users join/leave. 63. Test with simulated multiple users.
+70. Auto‑populate a message string (e.g. "/pay 188.50 split {N}") using this calculation.  
+71. Display the auto‑calculated split command on the UI.  
+72. Ensure that the calculation updates dynamically if users join/leave. 73. Test with simulated multiple users.
 
-9. **Implement Payment Flow -- API Endpoints:**  
-64. Create a new API route at `pages/api/initiate-payment.js` for initiating the payment (for the initiator).  
-65. In this endpoint, simulate processing a transaction of .1 WLD (using dummy logic for now).  
-66. Log the transaction details for debugging.  
-67. Return a success JSON response.  
-68. Create another API route at `pages/api/confirm-payment.js` for non‑initiator confirmations.  
-69. In the confirm endpoint, simulate a .1 WLD transaction (again, dummy logic).  
-70. Ensure that these endpoints check and log relevant parameters (e.g. user ID, receipt details).  
-71. Test these endpoints using Postman or curl.
+10. **Implement Payment Flow -- API Endpoints:**  
+74. Create a new API route at `pages/api/initiate-payment.js` for initiating the payment (for the initiator).  
+75. In this endpoint, simulate processing a transaction of .1 WLD (using dummy logic for now).  
+76. Log the transaction details for debugging.  
+77. Return a success JSON response.  
+78. Create another API route at `pages/api/confirm-payment.js` for non‑initiator confirmations.  
+79. In the confirm endpoint, simulate a .1 WLD transaction (again, dummy logic).  
+80. Ensure that these endpoints check and log relevant parameters (e.g. user ID, receipt details).  
+81. Test these endpoints using Postman or curl.
 
-10. **Integrate Payment Flow into the UI:**  
-72. In your receipt component, add a "Confirm Payment" button for non‑initiators.  
-73. Wire up the button to call `/api/confirm-payment` via fetch/AJAX.  
-74. For the initiator, trigger `/api/initiate-payment` automatically when the receipt scan completes.  
-75. Show loading indicators while the API call is in progress.  
-76. Upon success, display a confirmation message.  
-77. Log any errors and show an error message if the API call fails.  
-78. Test the full payment flow end-to-end locally.
+11. **Integrate Payment Flow into the UI:**  
+82. In your receipt component, add a "Confirm Payment" button for non‑initiators.  
+83. Wire up the button to call `/api/confirm-payment` via fetch/AJAX.  
+84. For the initiator, trigger `/api/initiate-payment` automatically when the receipt scan completes.  
+85. Show loading indicators while the API call is in progress.  
+86. Upon success, display a confirmation message.  
+87. Log any errors and show an error message if the API call fails.  
+88. Test the full payment flow end-to-end locally.
 
-11. **Implement Travel Fund Module:**  
-79. Create a new component (e.g. `components/TravelFund.jsx`) for the travel fund prompt.  
-80. Design the prompt UI to display a message (e.g. "That meal was epic--contribute to your $3000 travel fund for Bali/Tokyo?").  
-81. Display the current progress (e.g., "$1556/$3000").  
-82. Add a "Contribute" button to confirm contribution.  
-83. Wire up the button to simulate a contribution (dummy API call if needed).  
-84. On confirmation, trigger a celebratory animation (e.g. confetti).  
-85. Integrate this component so that it appears after the payment flow completes.  
-86. Test the travel fund module locally.
+12. **Implement Travel Fund Module:**  
+89. Create a new component (e.g. `components/TravelFund.jsx`) for the travel fund prompt.  
+90. Design the prompt UI to display a message (e.g. "That meal was epic--contribute to your $3000 travel fund for Bali/Tokyo?").  
+91. Display the current progress (e.g., "$1556/$3000").  
+92. Add a "Contribute" button to confirm contribution.  
+93. Wire up the button to simulate a contribution (dummy API call if needed).  
+94. On confirmation, trigger a celebratory animation (e.g. confetti).  
+95. Integrate this component so that it appears after the payment flow completes.  
+96. Test the travel fund module locally.
 
-12. **Code Cleanup & Testing:**  
-87. Review all components and API endpoints for code quality.  
-88. Add error logging where necessary.  
-89. Write basic unit tests for key functions (e.g. split calculation).  
-90. Write integration tests to simulate a full chat and payment flow.  
-91. Manually test each component in various browsers and mobile simulators.
+13. **Code Cleanup & Testing:**  
+97. Review all components and API endpoints for code quality.  
+98. Add error logging where necessary.  
+99. Write basic unit tests for key functions (e.g. split calculation).  
+100. Write integration tests to simulate a full chat and payment flow.  
+101. Manually test each component in various browsers and mobile simulators.
 
-13. **Prepare for Production Deployment:**  
-92. Update your environment variables for production in a new file (e.g. `.env.production`).  
-93. Set:  
-`APP_ID="INSERT_APPID"`  
-`DEV_PORTAL_API_KEY="APIKEY"`  
-`WLD_CLIENT_ID=...`  
-`WLD_CLIENT_SECRET=...`  
-`NEXTAUTH_URL` to your production Vercel URL  
-94. Ensure all sensitive keys are kept secure.  
-95. Double-check that deep‑link URLs now use the production `APP_ID`.
+14. **Prepare for Production Deployment:**  
+102. Update your environment variables for production in a new file (e.g. `.env.production`).  
+103. Set:  
+```
+APP_ID="INSERT_APPID"
+DEV_PORTAL_API_KEY="APIKEY"
+WLD_CLIENT_ID=...
+WLD_CLIENT_SECRET=...
+NEXTAUTH_URL=your_vercel_url
+PUSHER_APP_ID=your_app_id
+PUSHER_KEY=your_key
+PUSHER_SECRET=your_secret
+PUSHER_CLUSTER=your_cluster
+```
+104. Ensure all sensitive keys are kept secure.  
+105. Double-check that deep‑link URLs now use the production `APP_ID`.
 
-14. **Deploy to Vercel:**  
-96. Push your code to a GitHub repository.  
-97. Create a new Vercel project and import your repository.  
-98. Set the production environment variables in Vercel as per step 93.  
-99. Deploy the application on Vercel.  
-100. Verify that the production instance loads correctly, that World wallet login works, and all flows (chat, receipt, payment, travel fund) perform as expected.
+15. **Deploy to Vercel:**  
+106. Push your code to a GitHub repository.  
+107. Create a new Vercel project and import your repository.  
+108. Set the production environment variables in Vercel as per step 103.  
+109. Deploy the application on Vercel.  
+110. Verify that the production instance loads correctly, that World wallet login works, and all flows (chat, receipt, payment, travel fund) perform as expected.
 
 * * *
 
