@@ -1,9 +1,20 @@
-## This template provides a minimal setup to get Next.js working with MiniKit
+# Ephemeral - Group Chat with Receipt Scan & Payment Split
+
+Ephemeral is a modern group chat application that simplifies splitting bills and expenses among friends. Built with Next.js and integrated with World ID for secure authentication, it features real-time chat functionality and smart receipt scanning capabilities.
+
+## Features
+
+- 💬 Real-time group chat using Pusher
+- 📷 Receipt scanning and intelligent expense parsing
+- 💸 Easy payment splitting among group members
+- 🔐 Secure authentication with World ID
+- ⚡️ Built with Next.js for optimal performance
 
 ## Setup
 
-```bash
-cp .env.example .env
+1. **Clone and Install Dependencies**
+   ```bash
+   cp .env.example .env
 pnpm i
 pnpm dev
 
